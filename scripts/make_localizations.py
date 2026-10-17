@@ -249,6 +249,12 @@ T = {
 "无法启动更新安装器。": "The update installer could not be started.",
 "无法执行 %@。": "Could not run %@.",
 "安装更新时执行命令失败。": "A command failed while installing the update.",
+"有什么可以帮你的吗？": "What can I help you with?",
+"问点什么，或者从下面开始。": "Ask anything, or start with one of these.",
+"解释一个概念": "Explain a concept",
+"帮我写段代码": "Write some code",
+"搜索最新资讯": "Search the latest news",
+"填入输入框": "Fill the composer",
 }
 
 def quote(value: str) -> str:

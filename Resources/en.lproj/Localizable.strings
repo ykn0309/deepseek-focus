@@ -58,6 +58,7 @@
 "唤起与应用" = "Activation & App";
 "唤起快捷键：%@" = "Shortcut: %@";
 "在菜单栏显示图标" = "Show icon in menu bar";
+"填入输入框" = "Fill the composer";
 "复制" = "Copy";
 "复制代码" = "Copy code";
 "好" = "OK";
@@ -72,6 +73,7 @@
 "已添加登录项，但需要在系统设置的「通用 → 登录项」中允许。" = "The login item was added, but you need to allow it in System Settings → General → Login Items.";
 "已连接" = "Connected";
 "已连接 DeepSeek，可随时开始对话。" = "Connected to DeepSeek. Ready when you are.";
+"帮我写段代码" = "Write some code";
 "应用所在目录不可写，无法自动安装。" = "The app's folder is not writable; automatic installation is unavailable.";
 "开启新对话" = "New Chat";
 "开始新对话（⌘N）" = "Start a new chat (⌘N)";
@@ -100,6 +102,7 @@
 "搜索关键词不能为空" = "The search query cannot be empty";
 "搜索历史会话" = "Search history";
 "搜索已中断" = "Search interrupted";
+"搜索最新资讯" = "Search the latest news";
 "搜索来源" = "Sources";
 "搜索结果格式不正确" = "Invalid search result format";
 "搜索请求失败" = "The search request failed";
@@ -135,6 +138,7 @@
 "最小化" = "Minimize";
 "最少的思考，适合简单问答。" = "Minimal reasoning for simple questions.";
 "最深入的推理，耗时和消耗最高。" = "Deepest reasoning; slowest and most token-intensive.";
+"有什么可以帮你的吗？" = "What can I help you with?";
 "服务" = "Services";
 "未命名会话" = "Untitled chat";
 "查看全部 %ld 个来源" = "Show all %ld sources";
@@ -189,6 +193,7 @@
 "自动搜索" = "Auto search";
 "获取 DeepSeek API Key" = "Get a DeepSeek API Key";
 "获取模型列表失败：%@" = "Failed to fetch the model list: %@";
+"解释一个概念" = "Explain a concept";
 "设置" = "Settings";
 "设置…" = "Settings…";
 "设置（⌘,）" = "Settings (⌘,)";
@@ -219,6 +224,7 @@
 "重命名" = "Rename";
 "重命名会话" = "Rename chat";
 "重新获取模型列表" = "Refresh model list";
+"问点什么，或者从下面开始。" = "Ask anything, or start with one of these.";
 "隐藏 API Key" = "Hide API Key";
 "隐藏 DeepSeek 聚焦" = "Hide DeepSeek Focus";
 "隐藏其他" = "Hide Others";
