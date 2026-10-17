@@ -554,8 +554,8 @@ private struct ReasoningView: View {
 
     private var title: String {
         if isThinking { return L10n.string("正在思考") }
-        if let duration = turn.reasoningDuration, duration > 0.3 {
-            return L10n.format("思考了 %.1f 秒", duration)
+        if let duration = turn.reasoningDuration, duration > 0 {
+            return L10n.format("思考了 %.1f 秒", max(duration, 0.1))
         }
         return L10n.string("思考过程")
     }
