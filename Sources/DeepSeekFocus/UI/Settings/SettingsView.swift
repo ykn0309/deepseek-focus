@@ -495,8 +495,8 @@ struct SettingsView: View {
                         Image(systemName: "link")
                         Text("GitHub 仓库")
                     }
-                    .font(.system(size: 10))
-                    .foregroundStyle(.tertiary)
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundStyle(FocusTheme.accent.opacity(0.9))
                 }
             }
         }
