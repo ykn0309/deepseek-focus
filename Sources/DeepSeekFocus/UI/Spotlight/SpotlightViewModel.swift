@@ -129,6 +129,7 @@ final class SpotlightViewModel: ObservableObject {
             model: sessionConfiguration.modelID,
             reasoningEffort: sessionConfiguration.reasoningEffort,
             webSearchEnabled: sessionConfiguration.webSearchMode == .automatic,
+            languageCode: settings.resolvedLanguageCode,
             now: Date(),
             timeZone: .current
         )

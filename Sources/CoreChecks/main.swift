@@ -149,6 +149,12 @@ struct CoreChecks {
         check(prompt.contains("当前时间"), "contains current time")
         let noWebPrompt = FocusSystemPrompt.make(webSearchEnabled: false)
         check(noWebPrompt.contains("联网搜索已关闭"), "reflects disabled search")
+        check(noWebPrompt.contains("不要因为系统提示词是中文而改用中文"), "forces user-language matching in Chinese prompt")
+
+        let englishPrompt = FocusSystemPrompt.make(webSearchEnabled: false, languageCode: "en")
+        check(englishPrompt.contains("Current time"), "localizes the prompt to English")
+        check(englishPrompt.contains("Web search is disabled"), "localizes disabled search to English")
+        check(englishPrompt.contains("language of the user's latest message"), "forces user-language matching in English prompt")
 
         let sources = [
             SearchSource(
@@ -162,6 +168,14 @@ struct CoreChecks {
         check(toolResult.contains("https://example.com/source"), "formats source URL")
         check(toolResult.contains("This is a summary."), "formats source summary")
         check(toolResult.contains("test query"), "formats search query")
+
+        let englishToolResult = WebSearchResultFormatter.make(
+            query: "test query",
+            sources: sources,
+            languageCode: "en"
+        )
+        check(englishToolResult.contains("Search query: test query"), "localizes search results to English")
+        check(englishToolResult.contains("Example source"), "keeps source titles in English results")
 
         if failures > 0 {
             print("\n\(failures) check(s) failed")

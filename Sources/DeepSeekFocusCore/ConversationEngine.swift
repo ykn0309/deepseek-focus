@@ -6,6 +6,7 @@ public struct ChatAgentConfiguration: Sendable {
     public var model: String
     public var reasoningEffort: String
     public var webSearchEnabled: Bool
+    public var languageCode: String
     public var now: Date
     public var timeZone: TimeZone
     public var maxSearchCount: Int
@@ -16,6 +17,7 @@ public struct ChatAgentConfiguration: Sendable {
         model: String,
         reasoningEffort: String,
         webSearchEnabled: Bool,
+        languageCode: String = "zh-Hans",
         now: Date = Date(),
         timeZone: TimeZone = .current,
         maxSearchCount: Int = 4
@@ -25,6 +27,7 @@ public struct ChatAgentConfiguration: Sendable {
         self.model = model
         self.reasoningEffort = reasoningEffort
         self.webSearchEnabled = webSearchEnabled
+        self.languageCode = languageCode
         self.now = now
         self.timeZone = timeZone
         self.maxSearchCount = maxSearchCount
@@ -158,7 +161,7 @@ public final class ConversationEngine {
                         continue
                     }
                     if let cached = searchCache[query] {
-                        toolResult = WebSearchResultFormatter.make(query: query, sources: cached)
+                        toolResult = WebSearchResultFormatter.make(query: query, sources: cached, languageCode: configuration.languageCode)
                         continuation.yield(.searchSucceeded(query: query, sources: cached))
                     } else {
                         searchCount += 1
@@ -170,7 +173,7 @@ public final class ConversationEngine {
                                 originalQuestion: question
                             )
                             searchCache[query] = sources
-                            toolResult = WebSearchResultFormatter.make(query: query, sources: sources)
+                            toolResult = WebSearchResultFormatter.make(query: query, sources: sources, languageCode: configuration.languageCode)
                             continuation.yield(.searchSucceeded(query: query, sources: sources))
                         } catch let error as DeepSeekError where error.isCancellation {
                             throw error
@@ -201,7 +204,8 @@ public final class ConversationEngine {
         let system = FocusSystemPrompt.make(
             now: configuration.now,
             timeZone: configuration.timeZone,
-            webSearchEnabled: configuration.webSearchEnabled
+            webSearchEnabled: configuration.webSearchEnabled,
+            languageCode: configuration.languageCode
         )
         let messagesWithSystem = [APIMessage.system(system)] + messages
         return ChatCompletionRequest(

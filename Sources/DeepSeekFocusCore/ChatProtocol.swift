@@ -319,44 +319,75 @@ public enum FocusSystemPrompt {
     public static func make(
         now: Date = Date(),
         timeZone: TimeZone = .current,
-        webSearchEnabled: Bool
+        webSearchEnabled: Bool,
+        languageCode: String = "zh-Hans"
     ) -> String {
+        let english = languageCode.lowercased().hasPrefix("en")
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.locale = Locale(identifier: english ? "en_US" : "zh_CN")
         formatter.timeZone = timeZone
-        formatter.dateFormat = "yyyy 年 M 月 d 日 EEEE HH:mm"
+        formatter.dateFormat = english ? "EEEE, MMMM d, yyyy HH:mm" : "yyyy 年 M 月 d 日 EEEE HH:mm"
         let dateText = formatter.string(from: now)
         let timeZoneName = timeZone.identifier
 
-        var lines: [String] = [
-            "你是「DeepSeek 聚焦」，一个常驻 macOS 的 AI 搜索与问答助手。你面向的是希望快速得到可靠答案的用户。",
-            "",
-            "当前时间：\(dateText)（\(timeZoneName)）。",
-            "",
-            "回答要求：",
-            "- 默认使用与用户提问相同的语言；用户使用中文时使用简体中文。",
-            "- 先给直接答案，再补充必要解释。保持简洁，适合在小型浮层中快速阅读。",
-            "- 使用 Markdown 组织内容。可以使用短段落、列表、粗体和代码块，但不要输出一级标题，也不要重复用户的问题。",
-            "- 不要编造事实，不要虚构链接、数据或引文。",
-            "- 当问题涉及实时信息且你无法确认时，坦率说明不确定性。"
-        ]
+        var lines: [String] = english
+            ? [
+                "You are \"DeepSeek Focus\", a macOS AI search and Q&A assistant for users who want fast, reliable answers.",
+                "",
+                "Current time: \(dateText) (\(timeZoneName)).",
+                "",
+                "Response requirements:",
+                "- Always answer in the language of the user's latest message. If the user writes in English, answer in English; if the user writes in Chinese, use Simplified Chinese. Never switch language just because this system prompt is written in English.",
+                "- Lead with the direct answer, then add only the explanation that is needed. Keep it concise and readable in a small floating panel.",
+                "- Use Markdown. Short paragraphs, lists, bold text, and code blocks are welcome, but do not output a top-level heading and do not repeat the user's question.",
+                "- Do not fabricate facts, links, data, or quotations.",
+                "- If real-time information is needed and you cannot confirm it, state the uncertainty honestly."
+            ]
+            : [
+                "你是「DeepSeek 聚焦」，一个常驻 macOS 的 AI 搜索与问答助手。你面向的是希望快速得到可靠答案的用户。",
+                "",
+                "当前时间：\(dateText)（\(timeZoneName)）。",
+                "",
+                "回答要求：",
+                "- 始终使用用户最新一条消息的语言回答：用户用英文提问就用英文回答，用中文提问就用简体中文回答。不要因为系统提示词是中文而改用中文。",
+                "- 先给直接答案，再补充必要解释。保持简洁，适合在小型浮层中快速阅读。",
+                "- 使用 Markdown 组织内容。可以使用短段落、列表、粗体和代码块，但不要输出一级标题，也不要重复用户的问题。",
+                "- 不要编造事实，不要虚构链接、数据或引文。",
+                "- 当问题涉及实时信息且你无法确认时，坦率说明不确定性。"
+            ]
 
         if webSearchEnabled {
-            lines.append(contentsOf: [
-                "",
-                "联网搜索已开启：",
-                "- 对于新闻、实时数据、价格、天气、近期事件、人物近况、产品或政策更新，或你自己没有把握的事实，先调用 `web_search` 工具。",
-                "- 日常闲聊、纯推理、翻译、创意写作、常识和普通编程问题通常不需要搜索。不要为了显得严谨而进行不必要的搜索。",
-                "- 使用搜索结果时，请在相关句子后用 Markdown 链接引用来源，格式为 `[站点名](URL)`。只引用工具返回内容中实际存在的链接。",
-                "- 如果搜索没有返回有用结果，请如实说明，并基于已有知识谨慎回答。"
-            ])
+            lines.append(contentsOf: english
+                ? [
+                    "",
+                    "Web search is enabled:",
+                    "- For news, live data, prices, weather, recent events, people's current status, product or policy updates, or facts you are unsure about, call the `web_search` tool first.",
+                    "- Everyday conversation, pure reasoning, translation, creative writing, general knowledge, and ordinary coding questions usually do not need a search. Do not search just to appear thorough.",
+                    "- When using search results, cite sources as Markdown links in the relevant sentence using `[Site name](URL)`. Only cite links that actually appear in the tool result.",
+                    "- If the search returns nothing useful, say so honestly and answer cautiously from your existing knowledge."
+                ]
+                : [
+                    "",
+                    "联网搜索已开启：",
+                    "- 对于新闻、实时数据、价格、天气、近期事件、人物近况、产品或政策更新，或你自己没有把握的事实，先调用 `web_search` 工具。",
+                    "- 日常闲聊、纯推理、翻译、创意写作、常识和普通编程问题通常不需要搜索。不要为了显得严谨而进行不必要的搜索。",
+                    "- 使用搜索结果时，请在相关句子后用 Markdown 链接引用来源，格式为 `[站点名](URL)`。只引用工具返回内容中实际存在的链接。",
+                    "- 如果搜索没有返回有用结果，请如实说明，并基于已有知识谨慎回答。"
+                ])
         } else {
-            lines.append(contentsOf: [
-                "",
-                "联网搜索已关闭：",
-                "- 你无法访问实时网页，不要声称自己刚刚搜索过。",
-                "- 当问题依赖可能过时的信息时，简要提醒用户可以在设置中开启联网搜索。"
-            ])
+            lines.append(contentsOf: english
+                ? [
+                    "",
+                    "Web search is disabled:",
+                    "- You cannot access live web pages. Do not claim that you just searched.",
+                    "- When a question depends on information that may be out of date, briefly remind the user that web search can be enabled in Settings."
+                ]
+                : [
+                    "",
+                    "联网搜索已关闭：",
+                    "- 你无法访问实时网页，不要声称自己刚刚搜索过。",
+                    "- 当问题依赖可能过时的信息时，简要提醒用户可以在设置中开启联网搜索。"
+                ])
         }
 
         return lines.joined(separator: "\n")
@@ -366,32 +397,46 @@ public enum FocusSystemPrompt {
 // MARK: - Tool result formatting
 
 public enum WebSearchResultFormatter {
-    public static func make(query: String, sources: [SearchSource]) -> String {
+    public static func make(
+        query: String,
+        sources: [SearchSource],
+        languageCode: String = "zh-Hans"
+    ) -> String {
+        let english = languageCode.lowercased().hasPrefix("en")
         guard !sources.isEmpty else {
-            return "联网搜索没有找到与「\(query)」相关的结果。不要编造来源；可以直接说明没有找到相关信息。"
+            return english
+                ? "Web search found no results for \"\(query)\". Do not invent sources; you may say that nothing relevant was found."
+                : "联网搜索没有找到与「\(query)」相关的结果。不要编造来源；可以直接说明没有找到相关信息。"
         }
 
-        var lines: [String] = [
-            "以下是通过 DeepSeek 搜索 API 检索到的实时网页结果。请仅基于这些结果中可核实的内容作答，并在相关句子后附上对应的 Markdown 链接。",
-            "搜索查询：\(query)",
-            "结果数量：\(sources.count)",
-            ""
-        ]
+        var lines: [String] = english
+            ? [
+                "The following real-time web results were retrieved through the DeepSeek Search API. Answer only from verifiable content in these results, and add the matching Markdown link after the relevant sentence.",
+                "Search query: \(query)",
+                "Result count: \(sources.count)",
+                ""
+            ]
+            : [
+                "以下是通过 DeepSeek 搜索 API 检索到的实时网页结果。请仅基于这些结果中可核实的内容作答，并在相关句子后附上对应的 Markdown 链接。",
+                "搜索查询：\(query)",
+                "结果数量：\(sources.count)",
+                ""
+            ]
 
         for (index, source) in sources.enumerated() {
             lines.append("[\(index + 1)] \(source.title)")
-            lines.append("URL: \(source.url)")
+            lines.append(english ? "URL: \(source.url)" : "URL: \(source.url)")
             if !source.displaySiteName.isEmpty {
-                lines.append("站点: \(source.displaySiteName)")
+                lines.append(english ? "Site: \(source.displaySiteName)" : "站点: \(source.displaySiteName)")
             }
             if let date = source.date, !date.isEmpty {
-                lines.append("日期: \(date)")
+                lines.append(english ? "Date: \(date)" : "日期: \(date)")
             }
             let body = [source.summary, source.snippet, source.content]
                 .compactMap { $0 }
                 .first { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
             if let body {
-                lines.append("内容: \(String(body.prefix(1_600)))")
+                lines.append(english ? "Content: \(String(body.prefix(1_600)))" : "内容: \(String(body.prefix(1_600)))")
             }
             lines.append("")
         }
