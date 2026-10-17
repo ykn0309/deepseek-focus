@@ -12,6 +12,13 @@ DeepSeek 聚焦是一个原生 macOS 菜单栏应用。按下全局快捷键，�
 
 > **非官方项目**：这是个人开发的第三方 DeepSeek 客户端，与 DeepSeek 官方没有隶属或合作关系。API 使用和搜索计费由使用者自行承担。
 
+## 界面
+
+<p align="center">
+  <img src="Resources/screenshots/query.jpg" width="49%" alt="聚焦搜索式 DeepSeek 输入框">
+  <img src="Resources/screenshots/conversation.jpg" width="49%" alt="带历史侧边栏的 DeepSeek 会话">
+</p>
+
 ## 下载
 
 从 [GitHub Releases](https://github.com/ykn0309/deepseek-focus/releases/latest) 下载 DMG，打开后把 `DeepSeek Focus.app` 拖进 **Applications**。

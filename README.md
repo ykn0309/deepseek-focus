@@ -12,6 +12,13 @@ DeepSeek Focus is a native macOS menu bar app. Press a global hotkey to open a f
 
 > **Unofficial project**: This is an independent third-party client, not affiliated with or endorsed by DeepSeek. API usage and search billing are the user's responsibility.
 
+## Screenshots
+
+<p align="center">
+  <img src="Resources/screenshots/query.jpg" width="49%" alt="Spotlight-style DeepSeek search bar">
+  <img src="Resources/screenshots/conversation.jpg" width="49%" alt="DeepSeek conversation with history sidebar">
+</p>
+
 ## Download
 
 Download the DMG from [GitHub Releases](https://github.com/ykn0309/deepseek-focus/releases/latest), open it, and drag `DeepSeek Focus.app` into **Applications**.
