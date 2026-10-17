@@ -37,7 +37,7 @@ DeepSeek 聚焦是一个原生 macOS 菜单栏应用：通过全局快捷键在�
 
 ## 下载
 
-预编译版本发布在 [GitHub Releases](https://github.com/ykn0309/deepseek-focus/releases/latest)。当前版本使用 ad-hoc 签名，没有经过 Apple 公证；首次启动如被 Gatekeeper 拦截，请右键点击 App 选择“打开”，或在“系统设置 → 隐私与安全性”中允许。
+预编译版本发布在 [GitHub Releases](https://github.com/ykn0309/deepseek-focus/releases/latest)。推荐下载 DMG，打开后把 `DeepSeek 聚焦.app` 拖进 Applications；也可以下载 zip。当前版本使用 ad-hoc 签名，没有经过 Apple 公证；首次启动如被 Gatekeeper 拦截，请右键点击 App 选择“打开”，或在“系统设置 → 隐私与安全性”中允许。
 
 ## 系统要求
 
@@ -98,6 +98,7 @@ swift package resolve
 
 - `dist/DeepSeek 聚焦.app`
 - `dist/DeepSeekFocus-latest.zip`
+- `dist/DeepSeekFocus-v<version>.dmg`（可选，运行 `./scripts/build_dmg.sh` 生成）
 
 构建脚本会用临时 ad-hoc 签名打包，并自动用新版本替换 `/Applications/DeepSeek 聚焦.app`。如果 `Applications` 不可写，会跳过安装并保留 `dist` 中的产物。
 
