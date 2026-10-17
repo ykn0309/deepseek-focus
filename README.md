@@ -16,6 +16,7 @@ DeepSeek Focus is a native macOS menu bar app. A global hotkey opens a Spotlight
 
 - **Global summon**: default `⌥ Space`, with a custom shortcut recorder in Settings. The panel opens on the screen containing the mouse as a floating `NSPanel`, without creating a regular document window. Left-clicking the menu bar icon opens the initial search field; right-clicking shows the menu.
 - **Launch and menu bar**: enable launch at login or hide the menu bar icon in Settings. Even when hidden, the global hotkey opens the panel; use `⌘,` for Settings.
+- **Update check**: Settings → About & Updates compares the installed version with the latest GitHub Release and links to the download page.
 - **Spotlight-style UI**: a translucent, blurred, rounded panel. After the first message, the input moves to the bottom and the conversation expands upward.
 - **Math formulas**: native SwiftMath rendering for inline `$...$` and display `$$...$$` formulas, including fractions, roots, Greek letters, subscripts, and superscripts.
 - **Bilingual UI**: follows the system language by default; switch between Simplified Chinese and English in Settings, with immediate effect.
@@ -31,6 +32,10 @@ DeepSeek Focus is a native macOS menu bar app. A global hotkey opens a Spotlight
   - **Search off**: no search tool is provided and no search request is made.
 - **Traceable sources**: search results appear as source cards, collapsed by default and expandable on demand. Markdown links in answers open in the browser.
 - **Privacy first**: the API key is stored in a local app-data file (mode 600), not the system Keychain. There are no accounts, relays, telemetry, or analytics SDKs. Conversations go only to DeepSeek.
+
+## Download
+
+Prebuilt builds are published on [GitHub Releases](https://github.com/ykn0309/deepseek-focus/releases/latest). The app is ad-hoc signed and not notarized; on first launch, right-click the app and choose Open, or allow it in System Settings → Privacy & Security.
 
 ## Requirements
 
@@ -127,6 +132,7 @@ DEEPSEEK_FOCUS_API_KEY=mock-key \
 - DeepSeek Search API usage is billed per successful request. See the [official documentation](https://api-docs.deepseek.com/guides/search/).
 - History is stored on local disk (see Privacy); there is no cloud sync.
 - The API key is stored in a local file rather than the Keychain. This is less protected than the Keychain; switch back to a Keychain implementation if you need system-level secret protection.
+- Update checks use GitHub's public Releases API and open the release page; the app does not install updates automatically.
 - Math rendering covers common LaTeX. Very complex custom macros, or formulas mixing CJK inside `\text{}`, may be limited by font fallback.
 
 ## Privacy
@@ -135,6 +141,7 @@ DEEPSEEK_FOCUS_API_KEY=mock-key \
 - This is an intentional tradeoff: a local file is less protected than the Keychain, and other processes running as the same macOS user may be able to read it. The app never writes it to UserDefaults, logs, or chat history.
 - The app contains no third-party analytics, crash reporting, or remote configuration.
 - User text, chat history, and search results are sent to `api.deepseek.com`; nothing is sent anywhere else.
+- Clicking Check for Updates sends a request to `api.github.com`; it includes no API key or conversation content.
 - Chat history is stored only at `~/Library/Application Support/DeepSeekFocus/history.json` with directory mode 0700 and file mode 0600.
 
 ## Contributing

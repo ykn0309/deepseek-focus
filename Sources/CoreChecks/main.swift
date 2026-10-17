@@ -133,6 +133,12 @@ struct CoreChecks {
         check(titlePrompt.contains("介绍一下牛顿第二定律"), "title prompt includes question")
         check(titlePrompt.contains("牛顿第二定律"), "title prompt includes answer")
 
+        check(VersionCompare.isNewer("v1.8.14", than: "1.8.13"), "detects a newer patch version")
+        check(!VersionCompare.isNewer("v1.8.13", than: "1.8.13"), "equal versions are not newer")
+        check(VersionCompare.isNewer("1.9", than: "1.8.99"), "compares missing components as zero")
+        check(!VersionCompare.isNewer("1.8", than: "1.8.0"), "treats missing components as zero")
+        check(!VersionCompare.isNewer("1.8.13-beta.1", than: "1.8.13"), "ignores prerelease suffix")
+
         print("Prompt and tool result")
         let prompt = FocusSystemPrompt.make(
             now: Date(timeIntervalSince1970: 1_782_000_000),

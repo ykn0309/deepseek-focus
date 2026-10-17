@@ -7,6 +7,8 @@ struct SettingsView: View {
     var onBack: () -> Void
 
     @State private var revealAPIKey = false
+    @StateObject private var updateChecker = UpdateChecker()
+    @Environment(\.openURL) private var openURL
 
     private var selectedModel: DeepSeekModel {
         modelCatalog.selectedModel
@@ -26,6 +28,7 @@ struct SettingsView: View {
                     connectionSection
                     behaviorSection
                     modelSection
+                    updateSection
                     privacyNote
                 }
                 .padding(.horizontal, 26)
@@ -445,6 +448,89 @@ struct SettingsView: View {
         }
     }
 
+    private var updateSection: some View {
+        SettingsSection(
+            title: "关于与更新",
+            subtitle: nil,
+            icon: "arrow.triangle.2.circlepath"
+        ) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .center, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(L10n.format("当前版本 %@", appVersion))
+                            .font(.system(size: 11.5, weight: .medium))
+                        Text("从 GitHub Releases 检查最新版本。")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.tertiary)
+                    }
+                    Spacer()
+                    Button {
+                        Task {
+                            await updateChecker.check()
+                        }
+                    } label: {
+                        HStack(spacing: 5) {
+                            if updateChecker.isChecking {
+                                ProgressView()
+                                    .controlSize(.mini)
+                                    .tint(.white)
+                            }
+                            Text(L10n.string(updateChecker.isChecking ? "正在检查…" : "检查更新"))
+                                .font(.system(size: 10.5, weight: .medium))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(FocusTheme.accent, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(updateChecker.isChecking)
+                }
+
+                updateStatus
+
+                Link(destination: URL(string: "https://github.com/ykn0309/deepseek-focus")!) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "link")
+                        Text("GitHub 仓库")
+                    }
+                    .font(.system(size: 10))
+                    .foregroundStyle(.tertiary)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var updateStatus: some View {
+        switch updateChecker.state {
+        case .idle, .checking:
+            EmptyView()
+        case .upToDate:
+            Label(L10n.string("已是最新版本"), systemImage: "checkmark.circle")
+                .font(.system(size: 10.5))
+                .foregroundStyle(Color.green.opacity(0.85))
+        case .available(let version, let releaseURL):
+            HStack(spacing: 8) {
+                Label(L10n.format("发现新版本 %@", version), systemImage: "arrow.down.circle")
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundStyle(FocusTheme.accent)
+                Spacer()
+                Button(L10n.string("前往下载")) {
+                    openURL(releaseURL)
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 10.5, weight: .medium))
+                .foregroundStyle(FocusTheme.accent)
+            }
+        case .failed(let message):
+            Label(message, systemImage: "exclamationmark.triangle")
+                .font(.system(size: 10.5))
+                .foregroundStyle(FocusTheme.warning)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
     private var privacyNote: some View {
         HStack(alignment: .top, spacing: 8) {
             Image(systemName: "lock.shield")
@@ -456,9 +542,6 @@ struct SettingsView: View {
                     .foregroundStyle(.tertiary)
                     .lineSpacing(2.5)
                     .fixedSize(horizontal: false, vertical: true)
-                Text(L10n.format("DeepSeek 聚焦 %@", appVersion))
-                    .font(.system(size: 9.5))
-                    .foregroundStyle(.quaternary)
             }
             Spacer()
         }

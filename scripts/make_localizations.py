@@ -198,6 +198,22 @@ T = {
 "修改 API Key 后请点击“验证并同步”。": "After changing the API key, click Verify & Sync.",
 "尚未配置 API Key。": "No API key configured.",
 "API Key 验证成功，已同步 %ld 个模型。": "API key verified. Synced %ld models.",
+"关于与更新": "About & Updates",
+"当前版本 %@": "Current version %@",
+"从 GitHub Releases 检查最新版本。": "Check GitHub Releases for the latest version.",
+"检查更新": "Check for Updates",
+"正在检查…": "Checking…",
+"已是最新版本": "You're up to date",
+"发现新版本 %@": "Version %@ is available",
+"前往下载": "Download",
+"GitHub 仓库": "GitHub repository",
+"尚未发布可用的 Release。": "No published release is available yet.",
+"GitHub API 请求过于频繁，请稍后再试。": "GitHub API rate limit reached. Try again later.",
+"GitHub Releases 返回了无法解析的数据。": "GitHub Releases returned data that couldn't be parsed.",
+"检查更新失败：HTTP %ld": "Update check failed: HTTP %ld",
+"检查更新失败：%@": "Update check failed: %@",
+"检查更新失败：无效的更新地址。": "Update check failed: invalid update URL.",
+"检查更新失败：服务器没有返回有效响应。": "Update check failed: the server returned an invalid response.",
 }
 
 def quote(value: str) -> str:
