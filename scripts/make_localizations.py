@@ -214,6 +214,14 @@ T = {
 "检查更新失败：%@": "Update check failed: %@",
 "检查更新失败：无效的更新地址。": "Update check failed: invalid update URL.",
 "检查更新失败：服务器没有返回有效响应。": "Update check failed: the server returned an invalid response.",
+"检查更新…": "Check for Updates…",
+"正在检查更新…": "Checking for Updates…",
+"检查更新失败": "Update Check Failed",
+"当前版本：%@": "Current version: %@",
+"发现新版本 v%@": "Version v%@ is available",
+"可以从 GitHub Releases 下载新版本。": "You can download the new version from GitHub Releases.",
+"稍后": "Later",
+"好": "OK",
 }
 
 def quote(value: str) -> str:

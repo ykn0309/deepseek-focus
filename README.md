@@ -16,7 +16,7 @@ DeepSeek Focus is a native macOS menu bar app. A global hotkey opens a Spotlight
 
 - **Global summon**: default `⌥ Space`, with a custom shortcut recorder in Settings. The panel opens on the screen containing the mouse as a floating `NSPanel`, without creating a regular document window. Left-clicking the menu bar icon opens the initial search field; right-clicking shows the menu.
 - **Launch and menu bar**: enable launch at login or hide the menu bar icon in Settings. Even when hidden, the global hotkey opens the panel; use `⌘,` for Settings.
-- **Update check**: Settings → Updates compares the installed version with the latest GitHub Release and links to the download page.
+- **Update check**: Settings → Updates and the menu bar menu compare the installed version with the latest GitHub Release and link to the download page.
 - **Spotlight-style UI**: a translucent, blurred, rounded panel. After the first message, the input moves to the bottom and the conversation expands upward.
 - **Math formulas**: native SwiftMath rendering for inline `$...$` and display `$$...$$` formulas, including fractions, roots, Greek letters, subscripts, and superscripts.
 - **Bilingual UI**: follows the system language by default; switch between Simplified Chinese and English in Settings, with immediate effect.

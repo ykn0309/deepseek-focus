@@ -12,6 +12,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var statusMenu: NSMenu?
     private var statusShortcutInfoItem: NSMenuItem?
+    private var statusCheckUpdateItem: NSMenuItem?
+    private var updateChecker = UpdateChecker()
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -276,6 +278,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsItem.target = self
         menu.addItem(settingsItem)
 
+        let checkForUpdates = NSMenuItem(
+            title: L10n.string(updateChecker.isChecking ? "正在检查更新…" : "检查更新…"),
+            action: #selector(checkForUpdatesFromMenu),
+            keyEquivalent: ""
+        )
+        checkForUpdates.target = self
+        checkForUpdates.isEnabled = !updateChecker.isChecking
+        menu.addItem(checkForUpdates)
+        statusCheckUpdateItem = checkForUpdates
+
         let about = NSMenuItem(title: L10n.string("关于 DeepSeek 聚焦"), action: #selector(showAbout), keyEquivalent: "")
         about.target = self
         menu.addItem(about)
@@ -297,6 +309,54 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             statusItem.popUpMenu(menu)
         } else {
             panelController.showFresh()
+        }
+    }
+
+    @objc private func checkForUpdatesFromMenu() {
+        guard !updateChecker.isChecking else { return }
+        statusCheckUpdateItem?.title = L10n.string("正在检查更新…")
+        statusCheckUpdateItem?.isEnabled = false
+
+        Task { [weak self] in
+            guard let self else { return }
+            await self.updateChecker.check()
+            self.statusCheckUpdateItem?.title = L10n.string("检查更新…")
+            self.statusCheckUpdateItem?.isEnabled = true
+            self.presentUpdateResult()
+        }
+    }
+
+    private func presentUpdateResult() {
+        switch updateChecker.state {
+        case .idle, .checking:
+            break
+        case .upToDate:
+            let alert = NSAlert()
+            alert.alertStyle = .informational
+            alert.messageText = L10n.string("已是最新版本")
+            alert.informativeText = L10n.format("当前版本：%@", "v\(updateChecker.currentVersion)")
+            alert.addButton(withTitle: L10n.string("好"))
+            NSApp.activate(ignoringOtherApps: true)
+            alert.runModal()
+        case .available(let version, let releaseURL):
+            let alert = NSAlert()
+            alert.alertStyle = .informational
+            alert.messageText = L10n.format("发现新版本 v%@", version)
+            alert.informativeText = L10n.string("可以从 GitHub Releases 下载新版本。")
+            alert.addButton(withTitle: L10n.string("前往下载"))
+            alert.addButton(withTitle: L10n.string("稍后"))
+            NSApp.activate(ignoringOtherApps: true)
+            if alert.runModal() == .alertFirstButtonReturn {
+                NSWorkspace.shared.open(releaseURL)
+            }
+        case .failed(let message):
+            let alert = NSAlert()
+            alert.alertStyle = .warning
+            alert.messageText = L10n.string("检查更新失败")
+            alert.informativeText = message
+            alert.addButton(withTitle: L10n.string("好"))
+            NSApp.activate(ignoringOtherApps: true)
+            alert.runModal()
         }
     }
 
