@@ -68,6 +68,7 @@ final class SpotlightViewModel: ObservableObject {
     private var currentSessionCreatedAt: Date?
     private var currentSessionTitle: String?
     private var currentSessionTitleGenerated = false
+    private var currentSessionLanguageCode: String
     private var settingsReturnToHistory = false
 
     init(settings: AppSettings, modelCatalog: ModelCatalog, historyStore: ConversationHistoryStore) {
@@ -84,6 +85,7 @@ final class SpotlightViewModel: ObservableObject {
             reasoningEffort: effort,
             webSearchMode: settings.webSearchMode
         )
+        self.currentSessionLanguageCode = settings.resolvedLanguageCode
     }
 
     var canSend: Bool {
@@ -129,7 +131,7 @@ final class SpotlightViewModel: ObservableObject {
             model: sessionConfiguration.modelID,
             reasoningEffort: sessionConfiguration.reasoningEffort,
             webSearchEnabled: sessionConfiguration.webSearchMode == .automatic,
-            languageCode: settings.resolvedLanguageCode,
+            languageCode: currentSessionLanguageCode,
             now: Date(),
             timeZone: .current
         )
@@ -185,6 +187,7 @@ final class SpotlightViewModel: ObservableObject {
         currentSessionCreatedAt = nil
         currentSessionTitle = nil
         currentSessionTitleGenerated = false
+        currentSessionLanguageCode = settings.resolvedLanguageCode
         focusToken &+= 1
     }
 
@@ -207,6 +210,7 @@ final class SpotlightViewModel: ObservableObject {
         currentSessionCreatedAt = nil
         currentSessionTitle = nil
         currentSessionTitleGenerated = false
+        currentSessionLanguageCode = settings.resolvedLanguageCode
         focusToken &+= 1
         onRequestExpand?()
     }
@@ -253,6 +257,7 @@ final class SpotlightViewModel: ObservableObject {
         currentSessionCreatedAt = session.createdAt
         currentSessionTitle = session.title
         currentSessionTitleGenerated = session.autoTitleGenerated ?? false
+        currentSessionLanguageCode = session.languageCode ?? settings.resolvedLanguageCode
         applyConfiguration(from: session)
         focusToken &+= 1
         onRequestExpand?()
@@ -302,7 +307,8 @@ final class SpotlightViewModel: ObservableObject {
             modelID: sessionConfiguration.modelID,
             reasoningEffort: sessionConfiguration.reasoningEffort,
             webSearchMode: sessionConfiguration.webSearchMode.rawValue,
-            autoTitleGenerated: currentSessionTitleGenerated
+            autoTitleGenerated: currentSessionTitleGenerated,
+            languageCode: currentSessionLanguageCode
         )
         historyStore.upsert(session)
     }

@@ -13,6 +13,7 @@ struct ConversationSession: Codable, Identifiable {
     var reasoningEffort: String
     var webSearchMode: String? = nil
     var autoTitleGenerated: Bool? = nil
+    var languageCode: String? = nil
 
     var turnCount: Int { turns.count }
 }

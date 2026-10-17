@@ -26,7 +26,7 @@ The build is ad-hoc signed and not notarized. If macOS blocks it on first launch
 - **Multi-turn chat**: per-chat model, reasoning level, and web search controls.
 - **Chat history**: search, resume, rename, and delete up to 50 local chats.
 - **Official model list**: verifies your DeepSeek API key and syncs available models and reasoning levels.
-- **Chinese and English UI**: follows the system language by default. The model prompt follows the UI language, while replies still match the language of your question.
+- **Chinese and English UI**: follows the system language by default. The model prompt follows the UI language, while replies still match the language of your question. Each chat keeps the language it was created in; changing the UI later only affects new chats.
 - **In-app updates**: checks GitHub Releases, downloads and verifies the new build, installs it, and restarts. No manual download required.
 
 ## Requirements
