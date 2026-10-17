@@ -124,7 +124,7 @@ T = {
 "正在思考…": "Thinking…",
 "正在思考": "Thinking",
 "思考了 %.1f 秒": "Thought for %.1f s",
-"思考过程": "Reasoning",
+"思考过程": "Thought process",
 "正在搜索「%@」…": "Searching for “%@”…",
 "搜索「%@」没有找到结果": "No results for “%@”",
 "搜索「%@」失败：%@": "Search failed for “%@”: %@",
