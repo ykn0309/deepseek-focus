@@ -4,14 +4,32 @@ import Foundation
 /// assistant reply. Keeping the prompt and sanitizer here makes them testable
 /// without a network request.
 public enum ConversationTitle {
-    public static func instruction(question: String, answer: String) -> String {
+    public static func instruction(
+        question: String,
+        answer: String,
+        languageCode: String = "zh-Hans"
+    ) -> String {
         let shortQuestion = String(question.prefix(500))
         let shortAnswer = String(answer.prefix(2_000))
+        if languageCode.lowercased().hasPrefix("en") {
+            return """
+            You are a chat title generator. Create a short, specific title for the conversation below.
+
+            Requirements:
+            - Use English.
+            - At most 8 words or 60 characters.
+            - Output only the title itself, with no quotes, numbering, prefix, explanation, or trailing punctuation.
+
+            User: \(shortQuestion)
+
+            Assistant: \(shortAnswer)
+            """
+        }
         return """
         你是会话命名助手。请根据下面这段对话生成一个简短、具体的会话标题。
 
         要求：
-        - 使用与用户相同的主要语言；
+        - 使用简体中文；
         - 不超过 14 个汉字或 28 个字符；
         - 只输出标题本身，不要引号、序号、前缀、解释或结尾标点。
 

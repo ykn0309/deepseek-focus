@@ -455,11 +455,17 @@ final class SpotlightViewModel: ObservableObject {
         let apiKey = settings.apiKey
         let baseURL = settings.baseURL
         let modelID = sessionConfiguration.modelID
+        let languageCode = currentSessionLanguageCode
+        let maxTitleLength = languageCode.lowercased().hasPrefix("en") ? 60 : 30
         Task { [weak self] in
             guard let self else { return }
             let request = ChatCompletionRequest(
                 model: modelID,
-                messages: [.user(ConversationTitle.instruction(question: question, answer: answer))],
+                messages: [.user(ConversationTitle.instruction(
+                    question: question,
+                    answer: answer,
+                    languageCode: languageCode
+                ))],
                 reasoningEffort: "none",
                 tools: nil,
                 maxTokens: 64
@@ -475,7 +481,7 @@ final class SpotlightViewModel: ObservableObject {
             } catch {
                 return
             }
-            guard let title = ConversationTitle.sanitize(raw) else { return }
+            guard let title = ConversationTitle.sanitize(raw, maxLength: maxTitleLength) else { return }
             guard let stored = self.historyStore.sessions.first(where: { $0.id == sessionID }),
                   stored.autoTitleGenerated != true else { return }
             self.historyStore.updateTitle(id: sessionID, title: title, generated: true)

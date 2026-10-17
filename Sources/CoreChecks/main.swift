@@ -132,6 +132,15 @@ struct CoreChecks {
         let titlePrompt = ConversationTitle.instruction(question: "介绍一下牛顿第二定律", answer: "牛顿第二定律描述了力、质量和加速度之间的关系。")
         check(titlePrompt.contains("介绍一下牛顿第二定律"), "title prompt includes question")
         check(titlePrompt.contains("牛顿第二定律"), "title prompt includes answer")
+        check(titlePrompt.contains("使用简体中文"), "uses Chinese title instructions by default")
+
+        let englishTitlePrompt = ConversationTitle.instruction(
+            question: "Explain inflation",
+            answer: "Inflation is a rise in the general price level.",
+            languageCode: "en"
+        )
+        check(englishTitlePrompt.contains("Use English"), "localizes title instructions to English")
+        check(englishTitlePrompt.contains("User: Explain inflation"), "keeps the question in English title prompt")
 
         check(VersionCompare.isNewer("v1.8.14", than: "1.8.13"), "detects a newer patch version")
         check(!VersionCompare.isNewer("v1.8.13", than: "1.8.13"), "equal versions are not newer")
