@@ -3,7 +3,7 @@
 from pathlib import Path
 import subprocess
 import tempfile
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "Resources" / "AppIconSource.png"
@@ -85,6 +85,21 @@ def main() -> None:
     source = Image.open(OUT).convert("RGBA")
     source.resize((512, 512), Image.LANCZOS).save(
         ROOT / "Resources" / "DeepSeekMark.png", optimize=True
+    )
+
+    # README presentation icon with rounded corners. The app bundle keeps the
+    # full-bleed source; macOS applies its own icon mask in Finder/Dock.
+    rounded_size = 4096
+    rounded = source.resize((rounded_size, rounded_size), Image.LANCZOS)
+    mask = Image.new("L", (rounded_size, rounded_size), 0)
+    ImageDraw.Draw(mask).rounded_rectangle(
+        (0, 0, rounded_size - 1, rounded_size - 1),
+        radius=int(rounded_size * 0.225),
+        fill=255,
+    )
+    rounded.putalpha(mask)
+    rounded.resize((512, 512), Image.LANCZOS).save(
+        ROOT / "Resources" / "AppIconRounded.png", optimize=True
     )
     for size in [16, 32, 64, 128, 256, 512, 1024]:
         icon = source.resize((size, size), Image.LANCZOS)
