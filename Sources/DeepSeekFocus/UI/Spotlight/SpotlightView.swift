@@ -12,7 +12,13 @@ struct SpotlightRootView: View {
                 SettingsView(
                     settings: settings,
                     modelCatalog: modelCatalog,
-                    onBack: { model.closeSettingsPage() }
+                    onBack: {
+                        if settings.hasAPIKey {
+                            model.closeSettingsPage()
+                        } else {
+                            model.onHide?()
+                        }
+                    }
                 )
                 .clipShape(RoundedRectangle(cornerRadius: FocusTheme.radiusLarge, style: .continuous))
                 .background(FocusPanelBackground(cornerRadius: FocusTheme.radiusLarge, prominentShadow: true))

@@ -37,7 +37,7 @@ The build is ad-hoc signed and not notarized. If macOS blocks it on first launch
 
 ## Usage
 
-1. Open the app and paste your DeepSeek API key in Settings.
+1. Open the app and paste your DeepSeek API key in Settings. Until a key is configured, the hotkey and menu bar left-click open Settings instead of the composer.
 2. Click **Verify & Sync**, then choose your default model, reasoning level, and web search mode.
 3. Set a global shortcut — the default is `⌥ Space`.
 4. Press the shortcut anywhere, type a question, and press `Return`.

@@ -76,6 +76,10 @@ final class SpotlightPanelController {
     }
 
     func toggle() {
+        guard settings.hasAPIKey else {
+            showSettings()
+            return
+        }
         if panel.isVisible {
             hide()
         } else {
@@ -83,8 +87,13 @@ final class SpotlightPanelController {
         }
     }
 
-    /// Summoning the palette always starts from a clean search field.
+    /// Summoning the palette always starts from a clean search field, but a
+    /// missing API key must be resolved before the user can reach the composer.
     func showFresh() {
+        guard settings.hasAPIKey else {
+            showSettings()
+            return
+        }
         model.beginFreshInvocation()
         show()
     }
@@ -231,7 +240,11 @@ final class SpotlightPanelController {
         if event.keyCode == 53 { // Escape
             if composing { return event }
             if model.isShowingSettings {
-                model.closeSettingsPage()
+                if settings.hasAPIKey {
+                    model.closeSettingsPage()
+                } else {
+                    hide()
+                }
                 return nil
             }
             hide()
@@ -240,7 +253,11 @@ final class SpotlightPanelController {
 
         if flags.contains(.command), !flags.contains(.option), !flags.contains(.control) {
             if event.charactersIgnoringModifiers?.lowercased() == "n" {
-                model.newConversation()
+                if settings.hasAPIKey {
+                    model.newConversation()
+                } else {
+                    showSettings()
+                }
                 return nil
             }
             if event.charactersIgnoringModifiers == "," {

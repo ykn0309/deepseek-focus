@@ -118,6 +118,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func startNewConversation() {
+        guard settings.hasAPIKey else {
+            showSettings()
+            return
+        }
         panelController.viewModel.newConversation()
         panelController.show()
     }
