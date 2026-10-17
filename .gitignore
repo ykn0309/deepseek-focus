@@ -1,0 +1,23 @@
+# SwiftPM build output
+.build/
+.swiftpm/
+*.swiftpm
+
+# Packaged app and archives
+dist/
+
+# Generated icon intermediates (AppIconSource.png + scripts/make_icon.py can recreate them)
+Resources/AppIcon.iconset/
+
+# Local documentation screenshots may contain personal history
+docs/
+
+# macOS and editor noise
+.DS_Store
+xcuserdata/
+*.xcuserstate
+
+# Local secrets
+.env
+*.p12
+*.cer

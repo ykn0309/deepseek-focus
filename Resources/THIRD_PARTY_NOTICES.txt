@@ -1,0 +1,5 @@
+DeepSeek Focus uses SwiftMath (https://github.com/mgriebling/SwiftMath),
+a Swift port of iosMath, for native LaTeX rendering.
+
+SwiftMath is distributed under the MIT License.
+Copyright (c) 2022 Mike Griebling and contributors.
