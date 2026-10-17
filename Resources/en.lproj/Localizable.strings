@@ -28,7 +28,6 @@
 "像聚焦搜索一样，随时向 DeepSeek 提问。\n\nAPI Key 仅保存在本机应用数据文件中，对话直接发送给 DeepSeek。" = "Ask DeepSeek anytime, just like Spotlight.\n\nYour API key is stored only in local app data, and conversations go directly to DeepSeek.";
 "全选" = "Select All";
 "关于 DeepSeek 聚焦" = "About DeepSeek Focus";
-"关于与更新" = "About & Updates";
 "关闭" = "Off";
 "关闭历史会话" = "Close history";
 "关闭后仍可用全局快捷键唤起；按 ⌘, 打开设置。" = "When hidden, you can still open the panel with the global shortcut and Settings with ⌘,.";
@@ -116,6 +115,7 @@
 "未命名会话" = "Untitled chat";
 "查看全部 %ld 个来源" = "Show all %ld sources";
 "标准思考深度。" = "Standard reasoning depth.";
+"检查与更新" = "Updates";
 "检查更新" = "Check for Updates";
 "检查更新失败：%@" = "Update check failed: %@";
 "检查更新失败：HTTP %ld" = "Update check failed: HTTP %ld";

@@ -25,10 +25,10 @@ struct SettingsView: View {
 
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 16) {
+                    updateSection
                     connectionSection
                     behaviorSection
                     modelSection
-                    updateSection
                     privacyNote
                 }
                 .padding(.horizontal, 26)
@@ -450,7 +450,7 @@ struct SettingsView: View {
 
     private var updateSection: some View {
         SettingsSection(
-            title: "关于与更新",
+            title: "检查与更新",
             subtitle: nil,
             icon: "arrow.triangle.2.circlepath"
         ) {

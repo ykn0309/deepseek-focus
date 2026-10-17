@@ -198,7 +198,7 @@ T = {
 "修改 API Key 后请点击“验证并同步”。": "After changing the API key, click Verify & Sync.",
 "尚未配置 API Key。": "No API key configured.",
 "API Key 验证成功，已同步 %ld 个模型。": "API key verified. Synced %ld models.",
-"关于与更新": "About & Updates",
+"检查与更新": "Updates",
 "当前版本 %@": "Current version %@",
 "从 GitHub Releases 检查最新版本。": "Check GitHub Releases for the latest version.",
 "检查更新": "Check for Updates",
