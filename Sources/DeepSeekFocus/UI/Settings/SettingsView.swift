@@ -7,7 +7,7 @@ struct SettingsView: View {
     var onBack: () -> Void
 
     @State private var revealAPIKey = false
-    @StateObject private var updateChecker = UpdateChecker()
+    @ObservedObject private var updateChecker = UpdateChecker.shared
     @Environment(\.openURL) private var openURL
 
     private var selectedModel: DeepSeekModel {
@@ -459,7 +459,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 3) {
                         Text(L10n.format("当前版本 %@", appVersion))
                             .font(.system(size: 11.5, weight: .medium))
-                        Text("从 GitHub Releases 检查最新版本。")
+                        Text("从 GitHub Releases 检查并安装最新版本。")
                             .font(.system(size: 10))
                             .foregroundStyle(.tertiary)
                     }
@@ -470,21 +470,22 @@ struct SettingsView: View {
                         }
                     } label: {
                         HStack(spacing: 5) {
-                            if updateChecker.isChecking {
+                            if updateChecker.isBusy {
                                 ProgressView()
                                     .controlSize(.mini)
                                     .tint(.white)
                             }
-                            Text(L10n.string(updateChecker.isChecking ? "正在检查…" : "检查更新"))
+                            Text(L10n.string(updateActionTitle))
                                 .font(.system(size: 10.5, weight: .medium))
                         }
                         .foregroundStyle(.white)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
                         .background(FocusTheme.accent, in: Capsule())
+                        .opacity(updateChecker.isBusy ? 0.72 : 1)
                     }
                     .buttonStyle(.plain)
-                    .disabled(updateChecker.isChecking)
+                    .disabled(updateChecker.isBusy)
                 }
 
                 updateStatus
@@ -501,6 +502,15 @@ struct SettingsView: View {
         }
     }
 
+    private var updateActionTitle: String {
+        switch updateChecker.state {
+        case .checking: return "正在检查…"
+        case .downloading: return "正在下载…"
+        case .installing: return "正在安装…"
+        default: return "检查更新"
+        }
+    }
+
     @ViewBuilder
     private var updateStatus: some View {
         switch updateChecker.state {
@@ -510,24 +520,55 @@ struct SettingsView: View {
             Label(L10n.string("已是最新版本"), systemImage: "checkmark.circle")
                 .font(.system(size: 10.5))
                 .foregroundStyle(Color.green.opacity(0.85))
-        case .available(let version, let releaseURL):
-            HStack(spacing: 8) {
-                Label(L10n.format("发现新版本 %@", version), systemImage: "arrow.down.circle")
+        case .available(let version, _):
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 8) {
+                    Label(L10n.format("发现新版本 %@", version), systemImage: "arrow.down.circle")
+                        .font(.system(size: 10.5, weight: .medium))
+                        .foregroundStyle(FocusTheme.accent)
+                    Spacer()
+                    Button(L10n.string("下载并安装")) {
+                        Task {
+                            await updateChecker.downloadAndInstall()
+                        }
+                    }
+                    .buttonStyle(.plain)
                     .font(.system(size: 10.5, weight: .medium))
                     .foregroundStyle(FocusTheme.accent)
-                Spacer()
-                Button(L10n.string("前往下载")) {
-                    openURL(releaseURL)
                 }
-                .buttonStyle(.plain)
-                .font(.system(size: 10.5, weight: .medium))
-                .foregroundStyle(FocusTheme.accent)
+                Text("下载完成后会自动重启应用。")
+                    .font(.system(size: 9.5))
+                    .foregroundStyle(.tertiary)
+            }
+        case .downloading:
+            HStack(spacing: 6) {
+                ProgressView().controlSize(.small)
+                Text("正在下载更新…")
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(.secondary)
+            }
+        case .installing:
+            HStack(spacing: 6) {
+                ProgressView().controlSize(.small)
+                Text("正在安装，应用即将重启…")
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(.secondary)
             }
         case .failed(let message):
-            Label(message, systemImage: "exclamationmark.triangle")
-                .font(.system(size: 10.5))
-                .foregroundStyle(FocusTheme.warning)
-                .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 6) {
+                Label(message, systemImage: "exclamationmark.triangle")
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(FocusTheme.warning)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let releasePageURL = updateChecker.releasePageURL {
+                    Button(L10n.string("打开 Release 页面")) {
+                        openURL(releasePageURL)
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10))
+                    .foregroundStyle(FocusTheme.accent)
+                }
+            }
         }
     }
 

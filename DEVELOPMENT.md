@@ -88,6 +88,22 @@ The DMG contains `DeepSeek 聚焦.app` and an Applications shortcut. Both the ap
 
 For a release, publish the DMG, the ZIP, and a SHA-256 checksum file. The app checks `https://api.github.com/repos/ykn0309/deepseek-focus/releases/latest`; only the latest published, non-prerelease release is considered.
 
+## In-app updates
+
+The updater requires both the ZIP and `.sha256` release assets. It:
+
+1. downloads the ZIP from the GitHub release into a temporary file;
+2. downloads the checksum file and verifies SHA-256;
+3. extracts with `ditto`, checks `CFBundleIdentifier` and the version against the release tag, and runs `codesign --verify --deep --strict`;
+4. stages the app under `~/Library/Application Support/DeepSeekFocus/Updates/`;
+5. launches a detached helper script, then terminates the app.
+
+The helper waits for the app PID to exit, moves the current app to a timestamped backup, copies the staged app into place, strips quarantine, removes the backup, and opens the new app. If copying fails, it restores the backup and reopens it. The helper log is `~/Library/Application Support/DeepSeekFocus/Updates/install.log`.
+
+Automatic installation is only attempted when the running app is under `/Applications` and that directory is writable. Otherwise the updater shows an error and the user can open the Release page.
+
+The checksum and code-signature checks protect against corrupt or partially downloaded packages and obvious bundle mismatches. The app is ad-hoc signed, so this is not a cryptographic publisher identity check; a compromised GitHub account or repository could still publish a malicious release. Keep that in mind when enabling automatic installs.
+
 ## Known limitations
 
 - Ad-hoc signature; no Developer ID and no Apple notarization.
@@ -99,7 +115,7 @@ For a release, publish the DMG, the ZIP, and a SHA-256 checksum file. The app ch
 - History is local only; there is no cloud sync.
 - The API key is stored in a local file rather than the Keychain.
 - Common LaTeX renders natively; complex custom macros or CJK inside `\text{}` may be limited by font fallback.
-- The update check is manual and never installs updates automatically.
+- Automatic installation requires a writable `/Applications` and the ZIP + SHA-256 assets on the latest release.
 
 ## Contributing
 

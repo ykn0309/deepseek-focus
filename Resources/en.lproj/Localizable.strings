@@ -15,8 +15,14 @@
 "GitHub API 请求过于频繁，请稍后再试。" = "GitHub API rate limit reached. Try again later.";
 "GitHub Releases 返回了无法解析的数据。" = "GitHub Releases returned data that couldn't be parsed.";
 "GitHub 仓库" = "GitHub repository";
+"Release 中没有可用的自动更新包。" = "This release does not contain an automatic update package.";
+"下载完成后会自动重启应用。" = "The app will restart automatically after the download.";
+"下载并安装" = "Download & Install";
+"下载或安装更新失败：%@" = "Update download or install failed: %@";
+"下载更新失败。" = "The update download failed.";
 "不展示思考过程，响应最快。" = "No reasoning trace; fastest responses.";
 "今天" = "Today";
+"从 GitHub Releases 检查并安装最新版本。" = "Check GitHub Releases for the latest version and install it here.";
 "从 GitHub Releases 检查最新版本。" = "Check GitHub Releases for the latest version.";
 "从源码运行时无法注册登录项，请先打包为 .app。" = "Launch at Login cannot be registered when running from source. Build a .app first.";
 "代码" = "Code";
@@ -55,6 +61,7 @@
 "复制" = "Copy";
 "复制代码" = "Copy code";
 "好" = "OK";
+"安装更新时执行命令失败。" = "A command failed while installing the update.";
 "对话" = "Conversation";
 "尚未发布可用的 Release。" = "No published release is available yet.";
 "尚未配置 API Key。" = "No API key configured.";
@@ -65,6 +72,7 @@
 "已添加登录项，但需要在系统设置的「通用 → 登录项」中允许。" = "The login item was added, but you need to allow it in System Settings → General → Login Items.";
 "已连接" = "Connected";
 "已连接 DeepSeek，可随时开始对话。" = "Connected to DeepSeek. Ready when you are.";
+"应用所在目录不可写，无法自动安装。" = "The app's folder is not writable; automatic installation is unavailable.";
 "开启新对话" = "New Chat";
 "开始新对话（⌘N）" = "Start a new chat (⌘N)";
 "开机后在菜单栏静默运行，随时可用快捷键唤起。" = "Runs quietly in the menu bar after login and is always available through the shortcut.";
@@ -80,6 +88,7 @@
 "思考了 %.1f 秒" = "Thought for %.1f s";
 "思考过程" = "Reasoning";
 "恢复默认" = "Restore Default";
+"打开 Release 页面" = "Open Release Page";
 "打开历史会话" = "Open history";
 "打开搜索" = "Open Search";
 "打开设置" = "Open Settings";
@@ -100,7 +109,11 @@
 "新会话默认" = "New chat default";
 "新会话默认配置" = "New Chat Defaults";
 "新对话" = "New Chat";
+"无法下载更新校验文件，已取消安装。" = "The update checksum could not be downloaded; installation was cancelled.";
 "无法写入本机 API Key 文件。" = "Unable to write the local API key file.";
+"无法启动更新安装器。" = "The update installer could not be started.";
+"无法执行 %@。" = "Could not run %@.";
+"无法找到应用数据目录。" = "The application support folder could not be found.";
 "无法更新登录项：%@" = "Unable to update login item: %@";
 "无法注册 %@。它可能已被其他应用或系统占用（%ld）。" = "Unable to register %@. It may be in use by another app or the system (%ld).";
 "无法编码对话内容" = "Unable to encode the conversation";
@@ -110,6 +123,13 @@
 "更多操作" = "More";
 "更完整的推理，适合复杂问题。" = "More thorough reasoning for complex questions.";
 "更改会自动保存" = "Changes are saved automatically";
+"更新会在后台下载，完成后应用会自动重启。" = "The update downloads in the background; the app will restart automatically when it finishes.";
+"更新包中没有找到应用。" = "The update package does not contain an app.";
+"更新包中的应用标识不匹配。" = "The app identifier in the update package does not match.";
+"更新包中的应用版本与 Release 不一致。" = "The app version in the update package does not match the release.";
+"更新包校验失败，已取消安装。" = "The update checksum did not match; installation was cancelled.";
+"更新包校验文件格式不正确，已取消安装。" = "The update checksum has an invalid format; installation was cancelled.";
+"更新包缺少 SHA-256 校验文件，已取消安装。" = "The update is missing its SHA-256 checksum; installation was cancelled.";
 "更早" = "Earlier";
 "更深入的推理，响应会更慢。" = "Deeper reasoning; responses take longer.";
 "最小化" = "Minimize";
@@ -130,7 +150,12 @@
 "模型" = "Model";
 "模型列表为空" = "The model list is empty";
 "模型列表格式不正确" = "Invalid model list format";
+"正在下载…" = "Downloading…";
+"正在下载更新…" = "Downloading update…";
 "正在从 DeepSeek 获取模型列表…" = "Fetching the model list from DeepSeek…";
+"正在安装…" = "Installing…";
+"正在安装更新…" = "Installing update…";
+"正在安装，应用即将重启…" = "Installing; the app will restart shortly…";
 "正在思考" = "Thinking";
 "正在思考…" = "Thinking…";
 "正在搜索「%@」" = "Searching for “%@”";
@@ -169,6 +194,7 @@
 "设置（⌘,）" = "Settings (⌘,)";
 "试试其他关键词。" = "Try another keyword.";
 "请先填写 DeepSeek API Key。" = "Enter your DeepSeek API key first.";
+"请把应用放在 /Applications 后再自动更新。" = "Move the app to /Applications before using automatic updates.";
 "请按下新的快捷键…" = "Press a new shortcut…";
 "请求内容过大。" = "The request is too large.";
 "请求参数有误。" = "Invalid request.";

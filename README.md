@@ -27,7 +27,7 @@ The build is ad-hoc signed and not notarized. If macOS blocks it on first launch
 - **Chat history**: search, resume, rename, and delete up to 50 local chats.
 - **Official model list**: verifies your DeepSeek API key and syncs available models and reasoning levels.
 - **Chinese and English UI**: follows the system language by default.
-- **Update check**: from Settings or the menu bar; opens the latest GitHub Release when a new version is available.
+- **In-app updates**: checks GitHub Releases, downloads and verifies the new build, installs it, and restarts. No manual download required.
 
 ## Requirements
 
@@ -58,6 +58,7 @@ The build is ad-hoc signed and not notarized. If macOS blocks it on first launch
 - The API key is stored only on this Mac and is never sent anywhere except DeepSeek.
 - There are no accounts, telemetry, analytics, or relay servers.
 - Chat history stays local. Conversations are sent only to `api.deepseek.com`.
+- Update checks and downloads contact GitHub; no API key or chat content is included.
 
 ## Build from source
 

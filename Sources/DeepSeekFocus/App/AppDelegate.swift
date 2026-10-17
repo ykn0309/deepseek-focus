@@ -13,7 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusMenu: NSMenu?
     private var statusShortcutInfoItem: NSMenuItem?
     private var statusCheckUpdateItem: NSMenuItem?
-    private var updateChecker = UpdateChecker()
+    private let updateChecker = UpdateChecker.shared
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -32,6 +32,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         installMainMenu()
         installStatusItem()
+        updateChecker.$state
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.refreshStatusUpdateItem()
+            }
+            .store(in: &cancellables)
         settings.$showMenuBarIcon
             .dropFirst()
             .removeDuplicates()
@@ -279,12 +285,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(settingsItem)
 
         let checkForUpdates = NSMenuItem(
-            title: L10n.string(updateChecker.isChecking ? "正在检查更新…" : "检查更新…"),
+            title: L10n.string(statusUpdateTitleKey),
             action: #selector(checkForUpdatesFromMenu),
             keyEquivalent: ""
         )
         checkForUpdates.target = self
-        checkForUpdates.isEnabled = !updateChecker.isChecking
+        checkForUpdates.isEnabled = !updateChecker.isBusy
         menu.addItem(checkForUpdates)
         statusCheckUpdateItem = checkForUpdates
 
@@ -312,23 +318,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    @objc private func checkForUpdatesFromMenu() {
-        guard !updateChecker.isChecking else { return }
-        statusCheckUpdateItem?.title = L10n.string("正在检查更新…")
-        statusCheckUpdateItem?.isEnabled = false
+    private var statusUpdateTitleKey: String {
+        switch updateChecker.state {
+        case .checking: return "正在检查更新…"
+        case .downloading: return "正在下载更新…"
+        case .installing: return "正在安装更新…"
+        default: return "检查更新…"
+        }
+    }
 
+    private func refreshStatusUpdateItem() {
+        guard let item = statusCheckUpdateItem else { return }
+        item.title = L10n.string(statusUpdateTitleKey)
+        item.isEnabled = !updateChecker.isBusy
+    }
+
+    @objc private func checkForUpdatesFromMenu() {
+        guard !updateChecker.isBusy else { return }
         Task { [weak self] in
             guard let self else { return }
             await self.updateChecker.check()
-            self.statusCheckUpdateItem?.title = L10n.string("检查更新…")
-            self.statusCheckUpdateItem?.isEnabled = true
             self.presentUpdateResult()
         }
     }
 
     private func presentUpdateResult() {
         switch updateChecker.state {
-        case .idle, .checking:
+        case .idle, .checking, .downloading, .installing:
             break
         case .upToDate:
             let alert = NSAlert()
@@ -338,16 +354,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             alert.addButton(withTitle: L10n.string("好"))
             NSApp.activate(ignoringOtherApps: true)
             alert.runModal()
-        case .available(let version, let releaseURL):
+        case .available(let version, _):
             let alert = NSAlert()
             alert.alertStyle = .informational
             alert.messageText = L10n.format("发现新版本 v%@", version)
-            alert.informativeText = L10n.string("可以从 GitHub Releases 下载新版本。")
-            alert.addButton(withTitle: L10n.string("前往下载"))
+            alert.informativeText = L10n.string("更新会在后台下载，完成后应用会自动重启。")
+            alert.addButton(withTitle: L10n.string("下载并安装"))
             alert.addButton(withTitle: L10n.string("稍后"))
             NSApp.activate(ignoringOtherApps: true)
             if alert.runModal() == .alertFirstButtonReturn {
-                NSWorkspace.shared.open(releaseURL)
+                Task { [weak self] in
+                    guard let self else { return }
+                    await self.updateChecker.downloadAndInstall()
+                    if case .failed = self.updateChecker.state {
+                        self.presentUpdateResult()
+                    }
+                }
             }
         case .failed(let message):
             let alert = NSAlert()
@@ -355,8 +377,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             alert.messageText = L10n.string("检查更新失败")
             alert.informativeText = message
             alert.addButton(withTitle: L10n.string("好"))
+            let hasReleasePage = updateChecker.releasePageURL != nil
+            if hasReleasePage {
+                alert.addButton(withTitle: L10n.string("打开 Release 页面"))
+            }
             NSApp.activate(ignoringOtherApps: true)
-            alert.runModal()
+            let response = alert.runModal()
+            if hasReleasePage,
+               response == .alertSecondButtonReturn,
+               let releasePageURL = updateChecker.releasePageURL {
+                NSWorkspace.shared.open(releasePageURL)
+            }
         }
     }
 
