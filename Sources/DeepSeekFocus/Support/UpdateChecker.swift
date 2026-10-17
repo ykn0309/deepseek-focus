@@ -342,6 +342,7 @@ final class UpdateChecker: ObservableObject {
           /bin/rm -rf "$BACKUP"
           /bin/rm -rf "$(dirname "$NEW")"
           echo "installed"
+          /bin/sleep 1
           /usr/bin/open "$TARGET"
         else
           echo "copy failed; restoring"

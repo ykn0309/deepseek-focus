@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP_NAME="DeepSeek 聚焦"
+APP_NAME="DeepSeek Focus"
 APP="$ROOT/dist/$APP_NAME.app"
 
 if [ ! -d "$APP" ]; then

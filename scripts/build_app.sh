@@ -22,7 +22,7 @@ CONFIGURATION="${CONFIGURATION:-release}"
 swift build -c "$CONFIGURATION"
 BIN_PATH="$(swift build -c "$CONFIGURATION" --show-bin-path)"
 
-APP_NAME="DeepSeek 聚焦"
+APP_NAME="DeepSeek Focus"
 BUNDLE="$ROOT/dist/$APP_NAME.app"
 rm -rf "$BUNDLE"
 mkdir -p "$BUNDLE/Contents/MacOS" "$BUNDLE/Contents/Resources"
@@ -61,6 +61,10 @@ INSTALLED_APP="$INSTALL_DIR/$APP_NAME.app"
 if [ -d "$INSTALL_DIR" ] && [ -w "$INSTALL_DIR" ]; then
   rm -rf "$INSTALLED_APP"
   ditto "$BUNDLE" "$INSTALLED_APP"
+  LEGACY_APP="$INSTALL_DIR/DeepSeek 聚焦.app"
+  if [ -d "$LEGACY_APP" ] && [ "$LEGACY_APP" != "$INSTALLED_APP" ]; then
+    rm -rf "$LEGACY_APP"
+  fi
   echo "Installed: $INSTALLED_APP"
 else
   echo "warning: $INSTALL_DIR is not writable; skipped installation." >&2

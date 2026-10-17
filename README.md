@@ -14,7 +14,7 @@ DeepSeek Focus is a native macOS menu bar app. Press a global hotkey to open a f
 
 ## Download
 
-Download the DMG from [GitHub Releases](https://github.com/ykn0309/deepseek-focus/releases/latest), open it, and drag `DeepSeek 聚焦.app` into **Applications**.
+Download the DMG from [GitHub Releases](https://github.com/ykn0309/deepseek-focus/releases/latest), open it, and drag `DeepSeek Focus.app` into **Applications**.
 
 The build is ad-hoc signed and not notarized. If macOS blocks it on first launch, right-click the app and choose **Open**, or allow it in **System Settings → Privacy & Security**.
 

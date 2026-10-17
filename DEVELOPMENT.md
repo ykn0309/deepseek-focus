@@ -23,10 +23,10 @@ swift package resolve
 
 `build_app.sh` creates:
 
-- `dist/DeepSeek 聚焦.app`
+- `dist/DeepSeek Focus.app`
 - `dist/DeepSeekFocus-latest.zip`
 
-It uses a temporary ad-hoc signature and replaces `/Applications/DeepSeek 聚焦.app` when that directory is writable. Otherwise it leaves the artifacts in `dist/`.
+It uses a temporary ad-hoc signature and replaces `/Applications/DeepSeek Focus.app` when that directory is writable. Otherwise it leaves the artifacts in `dist/`.
 
 ### Command Line Tools only
 
@@ -72,7 +72,7 @@ The mock implements `/models`, streaming tool calls in `/chat/completions`, and 
 ```bash
 DEEPSEEK_FOCUS_BASE_URL=http://127.0.0.1:8765 \
 DEEPSEEK_FOCUS_API_KEY=mock-key \
-"dist/DeepSeek 聚焦.app/Contents/MacOS/DeepSeekFocus"
+"dist/DeepSeek Focus.app/Contents/MacOS/DeepSeekFocus"
 ```
 
 These environment variables are not saved as normal settings. Remove them from the shell after testing.
@@ -84,7 +84,7 @@ These environment variables are not saved as normal settings. Remove them from t
 ./scripts/build_dmg.sh
 ```
 
-The DMG contains `DeepSeek 聚焦.app` and an Applications shortcut. Both the app and DMG remain ad-hoc signed and unnotarized.
+The DMG contains `DeepSeek Focus.app` and an Applications shortcut. Both the app and DMG remain ad-hoc signed and unnotarized.
 
 For a release, publish the DMG, the ZIP, and a SHA-256 checksum file. The app checks `https://api.github.com/repos/ykn0309/deepseek-focus/releases/latest`; only the latest published, non-prerelease release is considered.
 

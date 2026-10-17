@@ -14,7 +14,7 @@ DeepSeek 聚焦是一个原生 macOS 菜单栏应用。按下全局快捷键，�
 
 ## 下载
 
-从 [GitHub Releases](https://github.com/ykn0309/deepseek-focus/releases/latest) 下载 DMG，打开后把 `DeepSeek 聚焦.app` 拖进 **Applications**。
+从 [GitHub Releases](https://github.com/ykn0309/deepseek-focus/releases/latest) 下载 DMG，打开后把 `DeepSeek Focus.app` 拖进 **Applications**。
 
 当前版本使用 ad-hoc 签名，没有经过 Apple 公证。首次启动如被系统拦截，请右键点击 App 选择 **打开**，或在 **系统设置 → 隐私与安全性** 中允许。
 

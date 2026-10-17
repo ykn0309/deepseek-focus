@@ -18,6 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        if AppBundleMigrator.migrateIfNeeded() { return }
         settings = AppSettings()
         settings.onLanguageChange = { [weak self] in
             self?.languageDidChange()
@@ -75,9 +76,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let firstLaunch = !settings.hasLaunchedBefore
-        settings.markLaunched()
+        let currentVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+        let didUpdate = settings.lastLaunchedVersion != currentVersion
+        settings.markLaunched(version: currentVersion)
 
-        if firstLaunch || !settings.hasAPIKey {
+        if didUpdate || firstLaunch || !settings.hasAPIKey {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
                 self?.showSettings()
             }

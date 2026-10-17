@@ -65,6 +65,7 @@ final class AppSettings: ObservableObject {
         static let searchMode = "deepseek.webSearchMode"
         static let shortcut = "deepseek.shortcut"
         static let hasLaunched = "deepseek.hasLaunched"
+        static let lastLaunchedVersion = "deepseek.lastLaunchedVersion"
         static let appLanguage = "deepseek.appLanguage"
         static let showMenuBarIcon = "deepseek.showMenuBarIcon"
     }
@@ -286,11 +287,16 @@ final class AppSettings: ObservableObject {
 
     // MARK: - Lifecycle
 
-    func markLaunched() {
+    func markLaunched(version: String) {
         defaults.set(true, forKey: Key.hasLaunched)
+        defaults.set(version, forKey: Key.lastLaunchedVersion)
     }
 
     var hasLaunchedBefore: Bool {
         defaults.bool(forKey: Key.hasLaunched)
+    }
+
+    var lastLaunchedVersion: String? {
+        defaults.string(forKey: Key.lastLaunchedVersion)
     }
 }

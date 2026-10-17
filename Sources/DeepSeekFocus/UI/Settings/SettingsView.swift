@@ -300,7 +300,7 @@ struct SettingsView: View {
                             .foregroundStyle(.quaternary)
                     }
 
-                    HStack(spacing: 10) {
+                    HStack(alignment: .top, spacing: 10) {
                         ForEach(WebSearchMode.allCases) { mode in
                             searchModeCard(mode)
                         }
@@ -352,7 +352,7 @@ struct SettingsView: View {
                 Spacer(minLength: 0)
             }
             .padding(11)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: 88, alignment: .topLeading)
             .background {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(isSelected ? FocusTheme.accent.opacity(0.065) : Color.primary.opacity(0.025))
