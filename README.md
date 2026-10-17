@@ -81,7 +81,9 @@ DeepSeek 聚焦是一个原生 macOS 菜单栏应用：通过全局快捷键在�
 ## 从源码构建
 
 ```bash
+git clone https://github.com/ykn0309/deepseek-focus.git
 cd deepseek-focus
+swift package resolve
 ./scripts/build_app.sh
 ```
 
@@ -134,8 +136,23 @@ DEEPSEEK_FOCUS_API_KEY=mock-key \
 - 用户输入的文本、历史消息和搜索结果会发送给 `api.deepseek.com`，除此之外不会发送到其他地方。
 - 会话历史仅保存在本机 `~/Library/Application Support/DeepSeekFocus/history.json`，目录权限 0700、文件权限 0600。
 
+## 参与贡献
+
+欢迎提交 Issue 和 Pull Request。提交前请至少运行：
+
+```bash
+SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk swift run CoreChecks
+```
+
+请注意不要提交真实的 API Key、`~/Library/Application Support/DeepSeekFocus` 下的本地历史，或包含个人对话的截图。
+
+## 致谢
+
+- [SwiftMath](https://github.com/mgriebling/SwiftMath)：原生 LaTeX 数学公式渲染（MIT）。
+- [Pillow](https://python-pillow.org/)：图标生成脚本使用。
+
 ## 许可
 
-本项目使用 MIT 许可。数学公式渲染依赖 SwiftMath（MIT），其字体资源随 App 一起打包；第三方说明见 `Resources/THIRD_PARTY_NOTICES.txt`。
+代码以 MIT License 发布，见 [LICENSE](LICENSE)。
 
-代码以 MIT License 发布，见 [LICENSE](LICENSE)。DeepSeek 名称、鲸鱼标志及相关素材归 DeepSeek 所有；本项目是非官方工具，与 DeepSeek 不存在隶属或背书关系。
+本项目使用 MIT 许可。数学公式渲染依赖 SwiftMath（MIT），其字体资源随 App 一起打包；第三方说明见 `Resources/THIRD_PARTY_NOTICES.txt`。DeepSeek 名称、鲸鱼标志及相关素材归 DeepSeek 所有；本项目是非官方工具，与 DeepSeek 不存在隶属或背书关系。

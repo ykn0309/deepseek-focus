@@ -126,12 +126,12 @@ struct CoreChecks {
         check(ReasoningEffortCopy.title(for: "high") == "High", "official high label")
         check(ReasoningEffortCopy.title(for: "max") == "Max", "official max label")
 
-        check(ConversationTitle.sanitize("“大理寺日志”") == "大理寺日志", "strips title quotes")
+        check(ConversationTitle.sanitize("“示例标题”") == "示例标题", "strips title quotes")
         check(ConversationTitle.sanitize("标题：AI 行业动态。\n解释内容") == "AI 行业动态", "strips title prefix and explanation")
         check(ConversationTitle.sanitize("   \n  ") == nil, "rejects an empty title")
-        let titlePrompt = ConversationTitle.instruction(question: "介绍一下罗小黑", answer: "罗小黑战记是一部动画电影。")
-        check(titlePrompt.contains("介绍一下罗小黑"), "title prompt includes question")
-        check(titlePrompt.contains("罗小黑战记"), "title prompt includes answer")
+        let titlePrompt = ConversationTitle.instruction(question: "介绍一下牛顿第二定律", answer: "牛顿第二定律描述了力、质量和加速度之间的关系。")
+        check(titlePrompt.contains("介绍一下牛顿第二定律"), "title prompt includes question")
+        check(titlePrompt.contains("牛顿第二定律"), "title prompt includes answer")
 
         print("Prompt and tool result")
         let prompt = FocusSystemPrompt.make(
