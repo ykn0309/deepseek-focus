@@ -13,6 +13,7 @@ final class SpotlightPanelController {
     private let settings: AppSettings
     private let modelCatalog: ModelCatalog
     private var keyMonitor: Any?
+    private var contentLoaded = false
 
     init(settings: AppSettings, modelCatalog: ModelCatalog, historyStore: ConversationHistoryStore) {
         self.settings = settings
@@ -24,22 +25,16 @@ final class SpotlightPanelController {
         )
         self.model = viewModel
 
-        let rootView = SpotlightRootView(
-            model: viewModel,
-            settings: settings,
-            modelCatalog: modelCatalog
-        )
-        let hostingView = NSHostingView(rootView: rootView)
-        hostingView.autoresizingMask = [.width, .height]
-        hostingView.wantsLayer = true
-
         let panel = SpotlightPanel(
             contentRect: NSRect(x: 0, y: 0, width: 900, height: 700),
             styleMask: [.borderless, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
-        panel.contentView = hostingView
+        // The SwiftUI hierarchy is intentionally created on first summon, not
+        // at launch. The hidden panel still exists, but its heavy view tree does
+        // not consume memory while the app idles in the menu bar.
+        panel.contentView = NSView()
         panel.backgroundColor = .clear
         panel.isOpaque = false
         panel.hasShadow = false
@@ -110,6 +105,7 @@ final class SpotlightPanelController {
     }
 
     func show() {
+        loadContentIfNeeded()
         let screen = screenForPresentation()
         let frame = targetFrame(conversation: model.isConversation, screen: screen)
         let shouldExpand = model.isConversation
@@ -149,6 +145,22 @@ final class SpotlightPanelController {
         removeKeyboardMonitor()
         panel.orderOut(nil)
         panel.alphaValue = 1
+    }
+
+    private func loadContentIfNeeded() {
+        guard !contentLoaded else { return }
+        contentLoaded = true
+
+        let rootView = SpotlightRootView(
+            model: model,
+            settings: settings,
+            modelCatalog: modelCatalog
+        )
+        let hostingView = NSHostingView(rootView: rootView)
+        hostingView.autoresizingMask = [.width, .height]
+        hostingView.wantsLayer = true
+        hostingView.frame = panel.contentLayoutRect
+        panel.contentView = hostingView
     }
 
     /// Re-evaluate the frame, e.g. after the system changes displays.
