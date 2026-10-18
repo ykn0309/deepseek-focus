@@ -309,7 +309,9 @@ struct AssistantMarkdownView: View {
                             .fill(FocusTheme.accent.opacity(0.75))
                             .frame(width: 4.5, height: 4.5)
                             .alignmentGuide(.firstTextBaseline) { dimensions in
-                                dimensions[.bottom] - 2.5
+                                // Align the dot's center just above the text baseline.
+                                // Subtracting here would place the dot at the baseline.
+                                dimensions[.bottom] + 2.5
                             }
                         inlineContent(
                             item,
