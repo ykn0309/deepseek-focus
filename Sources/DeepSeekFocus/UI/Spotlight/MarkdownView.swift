@@ -369,12 +369,7 @@ struct AssistantMarkdownView: View {
                 DividerLine()
 
                 ScrollView(.horizontal, showsIndicators: false) {
-                    Text(code)
-                        .font(.system(size: 12, weight: .regular, design: .monospaced))
-                        .foregroundStyle(.primary.opacity(0.86))
-                        .textSelection(.enabled)
-                        .padding(12)
-                        .fixedSize(horizontal: true, vertical: false)
+                    highlightedCode(code, language: language)
                 }
             }
             .background {
@@ -457,6 +452,86 @@ struct AssistantMarkdownView: View {
                             .strokeBorder(Color.primary.opacity(0.07), lineWidth: 0.7)
                     }
             }
+        }
+    }
+
+    private func highlightedCode(_ code: String, language: String?) -> some View {
+        Text(syntaxAttributedString(code, language: language))
+            .font(.system(size: 12, weight: .regular, design: .monospaced))
+            .textSelection(.enabled)
+            .padding(12)
+            .fixedSize(horizontal: true, vertical: false)
+    }
+
+    private func syntaxAttributedString(_ code: String, language: String?) -> AttributedString {
+        let tokens = SyntaxHighlighter.tokens(in: code, language: language)
+        guard !tokens.isEmpty else { return AttributedString(code) }
+
+        var result = AttributedString()
+        var cursor = code.startIndex
+
+        func appendPlain(_ range: Range<String.Index>) {
+            guard !range.isEmpty else { return }
+            var piece = AttributedString(String(code[range]))
+            piece.foregroundColor = Color.primary.opacity(0.86)
+            result.append(piece)
+        }
+
+        for token in tokens where token.range.lowerBound >= cursor {
+            if cursor < token.range.lowerBound {
+                appendPlain(cursor..<token.range.lowerBound)
+            }
+            var piece = AttributedString(String(code[token.range]))
+            piece.foregroundColor = syntaxColor(for: token.kind)
+            result.append(piece)
+            cursor = token.range.upperBound
+        }
+
+        if cursor < code.endIndex {
+            appendPlain(cursor..<code.endIndex)
+        }
+        return result
+    }
+
+    private func syntaxColor(for kind: SyntaxTokenKind) -> Color {
+        let dark = colorScheme == .dark
+        switch kind {
+        case .keyword:
+            return dark
+                ? Color(red: 0.78, green: 0.47, blue: 0.86)
+                : Color(red: 0.55, green: 0.16, blue: 0.68)
+        case .string:
+            return dark
+                ? Color(red: 0.60, green: 0.76, blue: 0.47)
+                : Color(red: 0.12, green: 0.47, blue: 0.18)
+        case .comment:
+            return dark
+                ? Color(red: 0.50, green: 0.56, blue: 0.64)
+                : Color(red: 0.45, green: 0.50, blue: 0.56)
+        case .number:
+            return dark
+                ? Color(red: 0.82, green: 0.60, blue: 0.40)
+                : Color(red: 0.63, green: 0.30, blue: 0.00)
+        case .function:
+            return dark
+                ? Color(red: 0.38, green: 0.69, blue: 0.94)
+                : Color(red: 0.08, green: 0.35, blue: 0.72)
+        case .type:
+            return dark
+                ? Color(red: 0.34, green: 0.71, blue: 0.76)
+                : Color(red: 0.00, green: 0.40, blue: 0.45)
+        case .variable:
+            return dark
+                ? Color(red: 0.88, green: 0.42, blue: 0.46)
+                : Color(red: 0.68, green: 0.12, blue: 0.25)
+        case .property:
+            return dark
+                ? Color(red: 0.90, green: 0.75, blue: 0.48)
+                : Color(red: 0.50, green: 0.32, blue: 0.00)
+        case .literal:
+            return dark
+                ? Color(red: 0.82, green: 0.60, blue: 0.40)
+                : Color(red: 0.63, green: 0.30, blue: 0.00)
         }
     }
 

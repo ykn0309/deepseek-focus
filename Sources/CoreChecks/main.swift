@@ -142,6 +142,43 @@ struct CoreChecks {
         check(englishTitlePrompt.contains("Use English"), "localizes title instructions to English")
         check(englishTitlePrompt.contains("User: Explain inflation"), "keeps the question in English title prompt")
 
+        print("Syntax highlighting")
+        func hasToken(
+            _ tokens: [SyntaxToken],
+            _ kind: SyntaxTokenKind,
+            in source: String,
+            containing needle: String
+        ) -> Bool {
+            tokens.contains { token in
+                token.kind == kind && source[token.range].contains(needle)
+            }
+        }
+
+        let bashCode = """
+        npx skills add vercel-labs/agent-skills --skill frontend-design
+        export TOKEN="abc" # note
+        echo $TOKEN
+        """
+        let bashTokens = SyntaxHighlighter.tokens(in: bashCode, language: "bash")
+        check(hasToken(bashTokens, .comment, in: bashCode, containing: "note"), "highlights shell comments")
+        check(hasToken(bashTokens, .string, in: bashCode, containing: "abc"), "highlights shell strings")
+        check(hasToken(bashTokens, .keyword, in: bashCode, containing: "export"), "highlights shell keywords")
+        check(hasToken(bashTokens, .variable, in: bashCode, containing: "$TOKEN"), "highlights shell variables")
+        check(hasToken(bashTokens, .function, in: bashCode, containing: "npx"), "highlights shell commands")
+
+        let swiftCode = "let answer = 42 // note\nprint(\"hi\")"
+        let swiftTokens = SyntaxHighlighter.tokens(in: swiftCode, language: "swift")
+        check(hasToken(swiftTokens, .keyword, in: swiftCode, containing: "let"), "highlights Swift keywords")
+        check(hasToken(swiftTokens, .number, in: swiftCode, containing: "42"), "highlights numbers")
+        check(hasToken(swiftTokens, .comment, in: swiftCode, containing: "note"), "highlights Swift comments")
+        check(hasToken(swiftTokens, .string, in: swiftCode, containing: "hi"), "highlights Swift strings")
+        check(hasToken(swiftTokens, .function, in: swiftCode, containing: "print"), "highlights function calls")
+
+        let jsonCode = "{\"key\": true}"
+        let jsonTokens = SyntaxHighlighter.tokens(in: jsonCode, language: "json")
+        check(hasToken(jsonTokens, .property, in: jsonCode, containing: "key"), "highlights JSON keys")
+        check(hasToken(jsonTokens, .literal, in: jsonCode, containing: "true"), "highlights JSON literals")
+
         check(VersionCompare.isNewer("v1.8.14", than: "1.8.13"), "detects a newer patch version")
         check(!VersionCompare.isNewer("v1.8.13", than: "1.8.13"), "equal versions are not newer")
         check(VersionCompare.isNewer("1.9", than: "1.8.99"), "compares missing components as zero")
