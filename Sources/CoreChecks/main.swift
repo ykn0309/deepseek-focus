@@ -82,6 +82,15 @@ struct CoreChecks {
             ]),
             APIMessage.tool("result", toolCallID: "c1")
         ]
+        let reasoningOnly = APIMessage.assistant(content: nil, reasoningContent: "thinking")
+        check(reasoningOnly.isEmptyAssistantMessage, "detects reasoning-only assistant messages")
+        check(APIMessage.assistant(content: "  ").isEmptyAssistantMessage, "detects blank assistant messages")
+        check(!APIMessage.assistant(content: "answer").isEmptyAssistantMessage, "accepts assistant text")
+        check(!APIMessage.assistant(
+            content: nil,
+            toolCalls: [ChatToolCall(id: "c2", function: .init(name: "web_search", arguments: "{}"))]
+        ).isEmptyAssistantMessage, "accepts assistant tool calls")
+
         let request = ChatCompletionRequest(
             model: "deepseek-flash",
             messages: messages,

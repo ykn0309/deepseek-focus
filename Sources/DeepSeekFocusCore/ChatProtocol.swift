@@ -16,6 +16,15 @@ public struct APIMessage: Codable, Equatable, Sendable {
     public var toolCalls: [ChatToolCall]?
     public var toolCallID: String?
 
+    /// DeepSeek rejects assistant messages that have neither text nor tool calls.
+    /// Reasoning-only responses must not be replayed as assistant history.
+    public var isEmptyAssistantMessage: Bool {
+        guard role == .assistant else { return false }
+        let hasText = !(content ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasToolCalls = !(toolCalls ?? []).isEmpty
+        return !hasText && !hasToolCalls
+    }
+
     public init(
         role: Role,
         content: String?,

@@ -52,7 +52,7 @@ public final class ConversationEngine {
     public init() {}
 
     public init(messages: [APIMessage]) {
-        self.messages = messages
+        self.messages = messages.filter { !$0.isEmptyAssistantMessage }
     }
 
     public func reset() {
@@ -131,9 +131,10 @@ public final class ConversationEngine {
             }
 
             let toolCalls = accumulator.resolved()
-            if !roundText.isEmpty || !roundReasoning.isEmpty || !toolCalls.isEmpty {
+            let answerText = roundText.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !answerText.isEmpty || !toolCalls.isEmpty {
                 self.messages.append(.assistant(
-                    content: roundText.isEmpty ? nil : roundText,
+                    content: answerText.isEmpty ? nil : roundText,
                     reasoningContent: roundReasoning.isEmpty ? nil : roundReasoning,
                     toolCalls: toolCalls.isEmpty ? nil : toolCalls
                 ))
@@ -207,7 +208,8 @@ public final class ConversationEngine {
             webSearchEnabled: configuration.webSearchEnabled,
             languageCode: configuration.languageCode
         )
-        let messagesWithSystem = [APIMessage.system(system)] + messages
+        let usableMessages = messages.filter { !$0.isEmptyAssistantMessage }
+        let messagesWithSystem = [APIMessage.system(system)] + usableMessages
         return ChatCompletionRequest(
             model: configuration.model,
             messages: messagesWithSystem,
