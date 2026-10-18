@@ -13,6 +13,13 @@
   4. commit, tag, and publish the GitHub Release with DMG, ZIP, and SHA-256 assets.
 - The local `/Applications/DeepSeek Focus.app` must not be replaced during normal development or update testing unless the user explicitly asks to install.
 
+## Local test installs
+
+- When app code changes and the user wants to test locally, run `./scripts/install_local.sh`.
+- This stages a fresh build, quits the running app, replaces the installed app, and relaunches it.
+- Local test installs are **not releases**: do not bump the marketing version, create a tag, or publish a GitHub Release for them.
+- The installed test build can carry the same version number as the latest release; only bump the version during an explicitly requested release.
+
 ## Build and test
 
 ```bash
