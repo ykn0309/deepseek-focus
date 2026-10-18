@@ -41,6 +41,40 @@ struct ConversationTurn: Identifiable, Codable {
 }
 
 @MainActor
+private final class GenerationJob {
+    let id: UUID
+    let createdAt: Date
+    var title: String?
+    var titleGenerated: Bool
+    let languageCode: String
+    var configuration: SessionAIConfiguration
+    let engine: ConversationEngine
+    var turns: [ConversationTurn]
+    var isStreaming = true
+    var task: Task<Void, Never>?
+
+    init(
+        id: UUID,
+        createdAt: Date,
+        title: String?,
+        titleGenerated: Bool,
+        languageCode: String,
+        configuration: SessionAIConfiguration,
+        engine: ConversationEngine,
+        turns: [ConversationTurn]
+    ) {
+        self.id = id
+        self.createdAt = createdAt
+        self.title = title
+        self.titleGenerated = titleGenerated
+        self.languageCode = languageCode
+        self.configuration = configuration
+        self.engine = engine
+        self.turns = turns
+    }
+}
+
+@MainActor
 final class SpotlightViewModel: ObservableObject {
     @Published var input = ""
     @Published private(set) var isConversation = false
@@ -62,8 +96,9 @@ final class SpotlightViewModel: ObservableObject {
 
     private var engine = ConversationEngine()
     private var streamTask: Task<Void, Never>?
+    private var activeJob: GenerationJob?
+    private var backgroundJobs: [UUID: GenerationJob] = [:]
     private var lastScrollTime = Date.distantPast
-    private var generation = 0
     @Published private(set) var currentSessionID: UUID?
     private var currentSessionCreatedAt: Date?
     private var currentSessionTitle: String?
@@ -98,6 +133,14 @@ final class SpotlightViewModel: ObservableObject {
         focusToken &+= 1
     }
 
+    private func ensureSessionIdentity() {
+        guard currentSessionID == nil else { return }
+        currentSessionID = UUID()
+        currentSessionCreatedAt = Date()
+        currentSessionTitle = nil
+        currentSessionTitleGenerated = false
+    }
+
     func submit() {
         let text = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, !isStreaming else { return }
@@ -114,12 +157,13 @@ final class SpotlightViewModel: ObservableObject {
             turn.errorMessage = DeepSeekError.missingAPIKey.errorDescription
             turn.needsSetup = true
         }
+        ensureSessionIdentity()
         turns.append(turn)
         input = ""
         focusToken &+= 1
         requestScroll(force: true)
 
-        guard hasKey else {
+        guard hasKey, let sessionID = currentSessionID else {
             isStreaming = false
             return
         }
@@ -136,31 +180,41 @@ final class SpotlightViewModel: ObservableObject {
             timeZone: .current
         )
 
-        streamTask?.cancel()
-        let currentGeneration = generation
-        streamTask = Task { [weak self] in
+        let job = GenerationJob(
+            id: sessionID,
+            createdAt: currentSessionCreatedAt ?? Date(),
+            title: currentSessionTitle,
+            titleGenerated: currentSessionTitleGenerated,
+            languageCode: currentSessionLanguageCode,
+            configuration: sessionConfiguration,
+            engine: engine,
+            turns: turns
+        )
+        backgroundJobs[job.id] = job
+        activeJob = job
+
+        let task = Task { [weak self] in
             guard let self else { return }
-            let stream = self.engine.send(userText: text, configuration: configuration)
+            let stream = job.engine.send(userText: text, configuration: configuration)
             do {
                 for try await event in stream {
                     try Task.checkCancellation()
-                    guard self.generation == currentGeneration else { return }
-                    self.consume(event)
+                    self.consume(event, for: job)
                 }
-                guard self.generation == currentGeneration else { return }
-                self.finishTurn(cancelled: false, error: nil)
+                self.finish(job, cancelled: false, error: nil)
             } catch {
-                guard self.generation == currentGeneration else { return }
                 if Task.isCancelled {
-                    self.finishTurn(cancelled: true, error: nil)
+                    self.finish(job, cancelled: true, error: nil)
                 } else if let deepSeekError = error as? DeepSeekError, deepSeekError.isCancellation {
-                    self.finishTurn(cancelled: true, error: nil)
+                    self.finish(job, cancelled: true, error: nil)
                 } else {
                     let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
-                    self.finishTurn(cancelled: false, error: message)
+                    self.finish(job, cancelled: false, error: message)
                 }
             }
         }
+        job.task = task
+        streamTask = task
     }
 
     func stopGenerating() {
@@ -171,8 +225,7 @@ final class SpotlightViewModel: ObservableObject {
     /// a clean search field; the previous conversation stays available in history.
     func beginFreshInvocation() {
         persistCurrentSessionIfNeeded()
-        generation &+= 1
-        streamTask?.cancel()
+        activeJob = nil
         streamTask = nil
         engine = ConversationEngine()
         turns = []
@@ -193,8 +246,7 @@ final class SpotlightViewModel: ObservableObject {
 
     func newConversation() {
         persistCurrentSessionIfNeeded()
-        generation &+= 1
-        streamTask?.cancel()
+        activeJob = nil
         streamTask = nil
         engine = ConversationEngine()
         turns = []
@@ -239,9 +291,29 @@ final class SpotlightViewModel: ObservableObject {
         if currentSessionID != session.id {
             persistCurrentSessionIfNeeded()
         }
-        generation &+= 1
-        streamTask?.cancel()
+        activeJob = nil
         streamTask = nil
+
+        if let job = backgroundJobs[session.id] {
+            activeJob = job
+            engine = job.engine
+            turns = job.turns
+            isStreaming = job.isStreaming
+            streamTask = job.task
+            input = ""
+            isConversation = !job.turns.isEmpty
+            currentSessionID = job.id
+            currentSessionCreatedAt = job.createdAt
+            currentSessionTitle = job.title ?? session.title
+            currentSessionTitleGenerated = job.titleGenerated
+            currentSessionLanguageCode = job.languageCode
+            sessionConfiguration = job.configuration
+            focusToken &+= 1
+            onRequestExpand?()
+            requestScroll(force: true)
+            return
+        }
+
         let restoredTurns = session.turns.map { stored -> ConversationTurn in
             var turn = stored
             turn.isStreaming = false
@@ -265,6 +337,13 @@ final class SpotlightViewModel: ObservableObject {
     }
 
     func clearHistory() {
+        for job in backgroundJobs.values {
+            job.task?.cancel()
+        }
+        backgroundJobs.removeAll()
+        activeJob = nil
+        streamTask = nil
+        isStreaming = false
         historyStore.clear()
         currentSessionID = nil
         currentSessionCreatedAt = nil
@@ -273,6 +352,11 @@ final class SpotlightViewModel: ObservableObject {
     /// Saves the current session without changing its position in history by
     /// default. Only a finished message turn should count as new activity.
     func persistCurrentSessionIfNeeded(touch: Bool = false) {
+        if let job = activeJob, job.id == currentSessionID {
+            persist(job, touch: touch)
+            return
+        }
+
         guard !turns.isEmpty else { return }
         let apiMessages = engine.messages
         guard !apiMessages.isEmpty else { return }
@@ -313,6 +397,45 @@ final class SpotlightViewModel: ObservableObject {
         historyStore.upsert(session)
     }
 
+    private func persist(_ job: GenerationJob, touch: Bool) {
+        guard !job.turns.isEmpty, !job.engine.messages.isEmpty else { return }
+
+        let now = Date()
+        let previousUpdatedAt = historyStore.sessions
+            .first(where: { $0.id == job.id })?.updatedAt
+        let updatedAt = touch ? now : (previousUpdatedAt ?? now)
+        let firstQuestion = job.turns.first?.question ?? "未命名会话"
+        let fallback = String(firstQuestion.replacingOccurrences(of: "\n", with: " ").prefix(48))
+        let storedTitle = job.title?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let title = (storedTitle?.isEmpty == false ? storedTitle! : fallback)
+        let storedTurns = job.turns.map { turn -> ConversationTurn in
+            var copy = turn
+            copy.isStreaming = false
+            return copy
+        }
+        let session = ConversationSession(
+            id: job.id,
+            createdAt: job.createdAt,
+            updatedAt: updatedAt,
+            title: title.isEmpty ? "未命名会话" : title,
+            turns: storedTurns,
+            apiMessages: job.engine.messages,
+            modelID: job.configuration.modelID,
+            reasoningEffort: job.configuration.reasoningEffort,
+            webSearchMode: job.configuration.webSearchMode.rawValue,
+            autoTitleGenerated: job.titleGenerated,
+            languageCode: job.languageCode
+        )
+        historyStore.upsert(session)
+
+        if currentSessionID == job.id {
+            currentSessionCreatedAt = job.createdAt
+            currentSessionTitle = job.title
+            currentSessionTitleGenerated = job.titleGenerated
+            currentSessionLanguageCode = job.languageCode
+        }
+    }
+
     func renameHistorySession(_ session: ConversationSession, title: String) {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
@@ -324,10 +447,17 @@ final class SpotlightViewModel: ObservableObject {
     }
 
     func deleteHistorySession(_ session: ConversationSession) {
+        if let job = backgroundJobs.removeValue(forKey: session.id) {
+            job.task?.cancel()
+            if activeJob === job {
+                activeJob = nil
+                streamTask = nil
+                isStreaming = false
+            }
+        }
         let deletingCurrent = currentSessionID == session.id
         if deletingCurrent {
-            generation &+= 1
-            streamTask?.cancel()
+            activeJob = nil
             streamTask = nil
             engine = ConversationEngine()
             turns = []
@@ -447,15 +577,18 @@ final class SpotlightViewModel: ObservableObject {
 
     // MARK: - Automatic title generation
 
-    private func startTitleGeneration(sessionID: UUID, turn: ConversationTurn) {
+    private func startTitleGeneration(
+        sessionID: UUID,
+        turn: ConversationTurn,
+        modelID: String,
+        languageCode: String
+    ) {
         let question = turn.question.trimmingCharacters(in: .whitespacesAndNewlines)
         let answer = turn.answer.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !question.isEmpty, !answer.isEmpty, settings.hasAPIKey else { return }
 
         let apiKey = settings.apiKey
         let baseURL = settings.baseURL
-        let modelID = sessionConfiguration.modelID
-        let languageCode = currentSessionLanguageCode
         let maxTitleLength = languageCode.lowercased().hasPrefix("en") ? 60 : 30
         Task { [weak self] in
             guard let self else { return }
@@ -494,38 +627,45 @@ final class SpotlightViewModel: ObservableObject {
 
     // MARK: - Event handling
 
-    private func consume(_ event: AgentEvent) {
+    private func consume(_ event: AgentEvent, for job: GenerationJob) {
+        let isActive = activeJob === job
+
+        func update(_ mutate: (inout ConversationTurn) -> Void) {
+            guard !job.turns.isEmpty else { return }
+            mutate(&job.turns[job.turns.count - 1])
+            if isActive {
+                turns = job.turns
+            }
+        }
+
         switch event {
         case .reasoningDelta(let delta):
-            updateLastTurn { turn in
+            update { turn in
                 if turn.reasoningStartedAt == nil {
                     turn.reasoningStartedAt = Date()
                 }
                 turn.reasoning += delta
             }
-            requestScroll()
 
         case .contentDelta(let delta):
-            updateLastTurn { turn in
+            update { turn in
                 if turn.reasoningStartedAt != nil, turn.reasoningDuration == nil {
                     turn.reasoningDuration = Date().timeIntervalSince(turn.reasoningStartedAt ?? Date())
                 }
                 turn.answer += delta
             }
-            requestScroll()
 
         case .searchStarted(let query):
-            updateLastTurn { turn in
+            update { turn in
                 turn.usedSearch = true
                 if turn.reasoningStartedAt != nil, turn.reasoningDuration == nil {
                     turn.reasoningDuration = Date().timeIntervalSince(turn.reasoningStartedAt ?? Date())
                 }
                 turn.activities.append(SearchActivity(query: query, state: .searching))
             }
-            requestScroll()
 
         case .searchSucceeded(let query, let sources):
-            updateLastTurn { turn in
+            update { turn in
                 if let index = turn.activities.lastIndex(where: { $0.query == query && $0.state == .searching }) {
                     turn.activities[index].state = .completed(count: sources.count)
                 }
@@ -534,57 +674,70 @@ final class SpotlightViewModel: ObservableObject {
                     turn.sources.append(source)
                 }
             }
-            requestScroll()
 
         case .searchFailed(let query, let message):
-            updateLastTurn { turn in
+            update { turn in
                 if let index = turn.activities.lastIndex(where: { $0.query == query && $0.state == .searching }) {
                     turn.activities[index].state = .failed(message: message)
                 }
             }
-            requestScroll()
 
         case .completed:
             break
         }
+
+        if isActive {
+            requestScroll()
+        }
     }
 
-    private func finishTurn(cancelled: Bool, error: String?) {
-        updateLastTurn { turn in
-            turn.isStreaming = false
+    private func finish(_ job: GenerationJob, cancelled: Bool, error: String?) {
+        guard job.isStreaming, backgroundJobs[job.id] === job else { return }
+        job.isStreaming = false
+        job.task = nil
+
+        if !job.turns.isEmpty {
+            job.turns[job.turns.count - 1].isStreaming = false
             if cancelled {
-                turn.wasStopped = true
+                job.turns[job.turns.count - 1].wasStopped = true
             }
             if let error {
-                turn.errorMessage = error
+                job.turns[job.turns.count - 1].errorMessage = error
             }
-            if turn.reasoningStartedAt != nil, turn.reasoningDuration == nil {
-                turn.reasoningDuration = Date().timeIntervalSince(turn.reasoningStartedAt ?? Date())
+            if job.turns[job.turns.count - 1].reasoningStartedAt != nil,
+               job.turns[job.turns.count - 1].reasoningDuration == nil {
+                job.turns[job.turns.count - 1].reasoningDuration = Date().timeIntervalSince(
+                    job.turns[job.turns.count - 1].reasoningStartedAt ?? Date()
+                )
             }
-            for index in turn.activities.indices {
-                if turn.activities[index].state == .searching {
-                    turn.activities[index].state = .failed(message: "搜索已中断")
+            for index in job.turns[job.turns.count - 1].activities.indices {
+                if job.turns[job.turns.count - 1].activities[index].state == .searching {
+                    job.turns[job.turns.count - 1].activities[index].state = .failed(message: "搜索已中断")
                 }
             }
         }
-        isStreaming = false
-        streamTask = nil
-        persistCurrentSessionIfNeeded(touch: true)
-        requestScroll(force: true)
 
-        if !cancelled, error == nil, turns.count == 1,
-           !currentSessionTitleGenerated,
-           let sessionID = currentSessionID,
-           let firstTurn = turns.first {
-            startTitleGeneration(sessionID: sessionID, turn: firstTurn)
+        let isActive = activeJob === job
+        if isActive {
+            turns = job.turns
+            isStreaming = false
+            streamTask = nil
+            activeJob = nil
+            requestScroll(force: true)
         }
-    }
 
-    private func updateLastTurn(_ mutate: (inout ConversationTurn) -> Void) {
-        guard !turns.isEmpty else { return }
-        var copy = turns
-        mutate(&copy[copy.count - 1])
-        turns = copy
+        persist(job, touch: true)
+        backgroundJobs.removeValue(forKey: job.id)
+
+        if !cancelled, error == nil, job.turns.count == 1, !job.titleGenerated,
+           let firstTurn = job.turns.first {
+            startTitleGeneration(
+                sessionID: job.id,
+                turn: firstTurn,
+                modelID: job.configuration.modelID,
+                languageCode: job.languageCode
+            )
+        }
     }
 
     private func requestScroll(force: Bool = false) {
