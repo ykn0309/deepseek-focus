@@ -235,7 +235,9 @@ final class MathRenderCache {
             ("\\dotsi", "\\cdots"),
             ("\\dotsm", "\\cdots"),
             ("\\dotso", "\\ldots"),
-            ("\\dots", "\\ldots")
+            ("\\dots", "\\ldots"),
+            ("\\underbrace", ""),
+            ("\\overbrace", "")
         ]
         for (from, to) in replacements {
             value = value.replacingOccurrences(of: from, with: to)
