@@ -1,9 +1,11 @@
+import AppKit
 import SwiftUI
 import DeepSeekFocusCore
 
 struct SettingsView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var modelCatalog: ModelCatalog
+    @State private var selectionAccessTrusted = SelectionAccess.isTrusted
     var onBack: () -> Void
 
     @State private var revealAPIKey = false
@@ -374,6 +376,44 @@ struct SettingsView: View {
                 onApply: { settings.applySidebarShortcut($0) },
                 onReset: { settings.resetSidebarShortcut() }
             )
+
+            Divider()
+
+            ShortcutSettingRow(
+                icon: "text.cursor",
+                title: "选区快捷操作",
+                subtitle: "选中文字后显示查询与翻译菜单",
+                shortcut: settings.selectionShortcut,
+                error: settings.selectionShortcutError,
+                onApply: { settings.applySelectionShortcut($0) },
+                onReset: { settings.resetSelectionShortcut() }
+            )
+
+            HStack(spacing: 6) {
+                Image(systemName: selectionAccessTrusted ? "checkmark.circle" : "exclamationmark.triangle")
+                    .font(.system(size: 9.5))
+                Text(selectionAccessTrusted
+                     ? "已获得辅助功能权限"
+                     : "读取其他应用的选中文字需要辅助功能权限")
+                    .font(.system(size: 10))
+                Spacer()
+                if !selectionAccessTrusted {
+                    Button("打开系统设置") {
+                        SelectionAccess.request()
+                        SelectionAccess.openSettings()
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(FocusTheme.accent)
+                }
+            }
+            .foregroundStyle(selectionAccessTrusted ? Color.secondary.opacity(0.65) : FocusTheme.warning)
+            .padding(.leading, 25)
+            .help("更新应用后如权限失效，请在系统设置中关闭再重新开启 DeepSeek Focus。")
+            .onAppear { selectionAccessTrusted = SelectionAccess.isTrusted }
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                selectionAccessTrusted = SelectionAccess.isTrusted
+            }
 
             Divider()
 

@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import DeepSeekFocusCore
 
 final class SpotlightPanel: NSPanel {
     override var canBecomeKey: Bool { true }
@@ -80,6 +81,23 @@ final class SpotlightPanelController {
         } else {
             showFresh()
         }
+    }
+
+    /// Starts a one-shot query from text selected in another application.
+    /// The selected text becomes a fresh user turn and the panel expands.
+    func startSelectionAction(text: String, action: SelectionAction) {
+        guard settings.hasAPIKey else {
+            showSettings()
+            return
+        }
+        model.beginFreshInvocation()
+        model.input = SelectionPrompt.make(
+            text: text,
+            action: action,
+            languageCode: settings.resolvedLanguageCode
+        )
+        show()
+        model.submit()
     }
 
     /// Summoning the palette always starts from a clean search field, but a

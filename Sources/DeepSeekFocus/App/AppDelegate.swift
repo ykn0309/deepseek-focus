@@ -9,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var historyStore: ConversationHistoryStore!
     private var panelController: SpotlightPanelController!
     private var hotKeyManager: HotKeyManager!
+    private var selectionPanelController: SelectionActionPanelController!
     private var statusItem: NSStatusItem!
     private var statusMenu: NSMenu?
     private var statusShortcutInfoItem: NSMenuItem?
@@ -30,6 +31,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             modelCatalog: modelCatalog,
             historyStore: historyStore
         )
+        selectionPanelController = SelectionActionPanelController()
+        selectionPanelController.onSelect = { [weak self] text, action in
+            guard let self else { return }
+            self.panelController.startSelectionAction(text: text, action: action)
+        }
 
         installMainMenu()
         installStatusItem()
@@ -51,13 +57,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hotKeyManager = HotKeyManager { [weak self] in
             self?.panelController.toggle()
         }
+        hotKeyManager.onSecondaryHotKey = { [weak self] in
+            self?.handleSelectionHotKey()
+        }
         settings.hotKeyRegistrationHandler = { [weak self] shortcut in
             guard let self else { return "快捷键服务尚未就绪。" }
-            let result = self.hotKeyManager.register(shortcut)
+            let result = self.hotKeyManager.register(shortcut, id: 1)
             if result == nil {
                 self.updateShortcutPresentation(shortcut.displayString)
             }
             return result
+        }
+        settings.selectionHotKeyRegistrationHandler = { [weak self] shortcut in
+            guard let self else { return "快捷键服务尚未就绪。" }
+            return self.hotKeyManager.register(shortcut, id: 2)
         }
         if let error = hotKeyManager.register(settings.shortcut) {
             settings.reportShortcutError(error)
@@ -68,6 +81,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         } else {
             settings.shortcutError = nil
+        }
+
+        if let error = hotKeyManager.register(settings.selectionShortcut, id: 2) {
+            settings.selectionShortcutError = error
         }
 
         Task { [weak self] in
@@ -101,12 +118,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidResignActive(_ notification: Notification) {
         panelController?.hide()
+        selectionPanelController?.hide()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         panelController?.viewModel.persistCurrentSessionIfNeeded()
         settings?.flushAPIKey()
-        hotKeyManager?.unregister()
+        hotKeyManager?.unregisterAll()
+        selectionPanelController?.hide()
+    }
+
+    private func handleSelectionHotKey() {
+        guard SelectionAccess.isTrusted else {
+            presentAccessibilityAlert()
+            return
+        }
+        guard let context = SelectionReader.read() else {
+            NSSound.beep()
+            return
+        }
+        selectionPanelController.show(text: context.text, near: context.anchor)
+    }
+
+    private func presentAccessibilityAlert() {
+        let alert = NSAlert()
+        alert.alertStyle = .informational
+        alert.messageText = L10n.string("需要辅助功能权限")
+        alert.informativeText = L10n.string("为了读取其他应用中的选中文字，请在系统设置中允许 DeepSeek Focus 使用辅助功能。允许后再次按快捷键即可；如仍无效，请重启 DeepSeek Focus。")
+        alert.addButton(withTitle: L10n.string("打开系统设置"))
+        alert.addButton(withTitle: L10n.string("取消"))
+        NSApp.activate(ignoringOtherApps: true)
+        if alert.runModal() == .alertFirstButtonReturn {
+            SelectionAccess.request()
+            SelectionAccess.openSettings()
+        }
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

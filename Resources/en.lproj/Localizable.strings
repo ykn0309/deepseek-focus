@@ -21,6 +21,7 @@
 "下载或安装更新失败：%@" = "Update download or install failed: %@";
 "下载更新失败。" = "The update download failed.";
 "不展示思考过程，响应最快。" = "No reasoning trace; fastest responses.";
+"为了读取其他应用中的选中文字，请在系统设置中允许 DeepSeek Focus 使用辅助功能。允许后再次按快捷键即可；如仍无效，请重启 DeepSeek Focus。" = "To read selected text from other apps, allow DeepSeek Focus in System Settings → Privacy & Security → Accessibility. Then press the shortcut again; if it still does not work, restart DeepSeek Focus.";
 "今天" = "Today";
 "从 GitHub Releases 检查并安装最新版本。" = "Check GitHub Releases for the latest version and install it here.";
 "从 GitHub Releases 检查最新版本。" = "Check GitHub Releases for the latest version.";
@@ -77,6 +78,7 @@
 "已同步 %ld 个模型 · %@" = "Synced %ld models · %@";
 "已是最新版本" = "You're up to date";
 "已添加登录项，但需要在系统设置的「通用 → 登录项」中允许。" = "The login item was added, but you need to allow it in System Settings → General → Login Items.";
+"已获得辅助功能权限" = "Accessibility access granted";
 "已连接" = "Connected";
 "已连接 DeepSeek，可随时开始对话。" = "Connected to DeepSeek. Ready when you are.";
 "帮我写段代码" = "Write some code";
@@ -99,6 +101,7 @@
 "打开 Release 页面" = "Open Release Page";
 "打开历史会话" = "Open history";
 "打开搜索" = "Open Search";
+"打开系统设置" = "Open System Settings";
 "打开设置" = "Open Settings";
 "找不到 DeepSeek API 接口，请稍后重试。" = "DeepSeek API endpoint not found. Try again later.";
 "按 %@ 展开对话" = "Press %@ to expand";
@@ -140,6 +143,7 @@
 "更新包校验失败，已取消安装。" = "The update checksum did not match; installation was cancelled.";
 "更新包校验文件格式不正确，已取消安装。" = "The update checksum has an invalid format; installation was cancelled.";
 "更新包缺少 SHA-256 校验文件，已取消安装。" = "The update is missing its SHA-256 checksum; installation was cancelled.";
+"更新应用后如权限失效，请在系统设置中关闭再重新开启 DeepSeek Focus。" = "If access stops working after an update, turn DeepSeek Focus off and on again in System Settings.";
 "更早" = "Earlier";
 "更深入的推理，响应会更慢。" = "Deeper reasoning; responses take longer.";
 "最小化" = "Minimize";
@@ -196,6 +200,7 @@
 "编辑" = "Edit";
 "缺少 HTTP 响应" = "Missing HTTP response";
 "网络连接失败：%@" = "Network error: %@";
+"翻译" = "Translate";
 "联网" = "Web";
 "联网搜索" = "Web Search";
 "自动" = "Auto";
@@ -218,6 +223,7 @@
 "请求被 DeepSeek 拒绝。" = "The request was rejected by DeepSeek.";
 "请求超时，请重试。" = "The request timed out. Try again.";
 "请求过于频繁，请稍后再试。" = "Too many requests. Try again shortly.";
+"读取其他应用中的选中文字需要辅助功能权限" = "Accessibility permission is required to read selected text from other apps";
 "跟随系统" = "Follow System";
 "轻量思考，速度与质量平衡。" = "Light reasoning that balances speed and quality.";
 "返回" = "Back";
@@ -226,20 +232,25 @@
 "这个快捷键已被侧边栏切换占用，请换一个。" = "This shortcut is already used for the sidebar. Choose another.";
 "这个快捷键已被全局唤起占用，请换一个。" = "This shortcut is already used by the global launcher. Choose another.";
 "这个快捷键已被展开快捷键占用，请换一个。" = "This shortcut is already used for expanding the panel. Choose another.";
+"这个快捷键已被选区快捷操作占用，请换一个。" = "This shortcut is already used for selection actions. Choose another.";
 "这个快捷键无效，请至少使用一个修饰键（⌘、⌥ 或 ⌃），或选择功能键。" = "Invalid shortcut. Use at least one modifier (⌘, ⌥, or ⌃), or choose a function key.";
 "这个快捷键无效，请至少使用一个修饰键（⌘、⌥、⌃），或选择功能键。" = "Invalid shortcut. Use at least one modifier (⌘, ⌥, or ⌃), or choose a function key.";
 "连接 DeepSeek" = "Connect to DeepSeek";
 "连接失败" = "Connection failed";
 "退出" = "Quit";
 "退出 DeepSeek 聚焦" = "Quit DeepSeek Focus";
+"选中文字后显示查询与翻译菜单" = "Show query and translate choices for selected text";
+"选区快捷操作" = "Selection actions";
 "重做" = "Redo";
 "重命名" = "Rename";
 "重命名会话" = "Rename chat";
 "重新获取模型列表" = "Refresh model list";
+"问 DeepSeek" = "Ask DeepSeek";
 "问点什么，或者从下面开始。" = "Ask anything, or start with one of these.";
 "隐藏 API Key" = "Hide API Key";
 "隐藏 DeepSeek 聚焦" = "Hide DeepSeek Focus";
 "隐藏其他" = "Hide Others";
+"需要辅助功能权限" = "Accessibility permission required";
 "验证 API Key 并从 DeepSeek 获取最新模型列表" = "Verify the API key and fetch the latest model list from DeepSeek";
 "验证中" = "Verifying";
 "验证并同步" = "Verify & Sync";

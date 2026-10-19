@@ -82,6 +82,13 @@ struct CoreChecks {
             ]),
             APIMessage.tool("result", toolCallID: "c1")
         ]
+        let selectionAsk = SelectionPrompt.make(text: "  Explain entropy  ", action: .ask, languageCode: "en")
+        check(selectionAsk == "Explain entropy", "selection ask trims and keeps text")
+        let selectionTranslate = SelectionPrompt.make(text: "Hello", action: .translate, languageCode: "zh-Hans")
+        check(selectionTranslate.contains("翻译成中文"), "selection translates non-Chinese text to Chinese")
+        let selectionTranslateChinese = SelectionPrompt.make(text: "你好", action: .translate, languageCode: "en")
+        check(selectionTranslateChinese.contains("into English"), "selection translates Chinese text to English")
+
         let reasoningOnly = APIMessage.assistant(content: nil, reasoningContent: "thinking")
         check(reasoningOnly.isEmptyAssistantMessage, "detects reasoning-only assistant messages")
         check(APIMessage.assistant(content: "  ").isEmptyAssistantMessage, "detects blank assistant messages")

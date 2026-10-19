@@ -66,6 +66,7 @@ final class AppSettings: ObservableObject {
         static let shortcut = "deepseek.shortcut"
         static let expandShortcut = "deepseek.expandShortcut"
         static let sidebarShortcut = "deepseek.sidebarShortcut"
+        static let selectionShortcut = "deepseek.selectionShortcut"
         static let hasLaunched = "deepseek.hasLaunched"
         static let lastLaunchedVersion = "deepseek.lastLaunchedVersion"
         static let appLanguage = "deepseek.appLanguage"
@@ -121,12 +122,21 @@ final class AppSettings: ObservableObject {
         }
     }
     @Published var sidebarShortcutError: String?
+    @Published private(set) var selectionShortcut: AppShortcut {
+        didSet {
+            if let data = try? JSONEncoder().encode(selectionShortcut) {
+                defaults.set(data, forKey: Key.selectionShortcut)
+            }
+        }
+    }
+    @Published var selectionShortcutError: String?
     @Published var credentialError: String?
     @Published private(set) var launchAtLogin = false
     @Published var launchAtLoginError: String?
 
     let baseURL: URL
     var hotKeyRegistrationHandler: ((AppShortcut) -> String?)?
+    var selectionHotKeyRegistrationHandler: ((AppShortcut) -> String?)?
     var onLanguageChange: (() -> Void)?
 
     private let defaults: UserDefaults
@@ -189,6 +199,12 @@ final class AppSettings: ObservableObject {
         } else {
             self.sidebarShortcut = .sidebarDefault
         }
+        if let data = defaults.data(forKey: Key.selectionShortcut),
+           let decoded = try? JSONDecoder().decode(AppShortcut.self, from: data) {
+            self.selectionShortcut = decoded
+        } else {
+            self.selectionShortcut = .selectionDefault
+        }
         self.credentialError = initialCredentialError
 
         refreshLaunchAtLoginState()
@@ -244,6 +260,10 @@ final class AppSettings: ObservableObject {
             shortcutError = L10n.string("这个快捷键已被侧边栏切换占用，请换一个。")
             return false
         }
+        guard newShortcut != selectionShortcut else {
+            shortcutError = L10n.string("这个快捷键已被选区快捷操作占用，请换一个。")
+            return false
+        }
         guard let hotKeyRegistrationHandler else {
             shortcutError = L10n.string("快捷键服务尚未就绪。")
             return false
@@ -275,6 +295,10 @@ final class AppSettings: ObservableObject {
             sidebarShortcutError = L10n.string("这个快捷键已被展开快捷键占用，请换一个。")
             return false
         }
+        guard newShortcut != selectionShortcut else {
+            sidebarShortcutError = L10n.string("这个快捷键已被选区快捷操作占用，请换一个。")
+            return false
+        }
         sidebarShortcut = newShortcut
         sidebarShortcutError = nil
         return true
@@ -298,6 +322,10 @@ final class AppSettings: ObservableObject {
             expandShortcutError = L10n.string("这个快捷键已被侧边栏切换占用，请换一个。")
             return false
         }
+        guard newShortcut != selectionShortcut else {
+            expandShortcutError = L10n.string("这个快捷键已被选区快捷操作占用，请换一个。")
+            return false
+        }
         expandShortcut = newShortcut
         expandShortcutError = nil
         return true
@@ -305,6 +333,41 @@ final class AppSettings: ObservableObject {
 
     func resetExpandShortcut() {
         _ = applyExpandShortcut(.expandDefault)
+    }
+
+    @discardableResult
+    func applySelectionShortcut(_ newShortcut: AppShortcut) -> Bool {
+        guard newShortcut.isValid else {
+            selectionShortcutError = L10n.string("这个快捷键无效，请至少使用一个修饰键（⌘、⌥、⌃），或选择功能键。")
+            return false
+        }
+        guard newShortcut != shortcut else {
+            selectionShortcutError = L10n.string("这个快捷键已被全局唤起占用，请换一个。")
+            return false
+        }
+        guard newShortcut != expandShortcut else {
+            selectionShortcutError = L10n.string("这个快捷键已被展开快捷键占用，请换一个。")
+            return false
+        }
+        guard newShortcut != sidebarShortcut else {
+            selectionShortcutError = L10n.string("这个快捷键已被侧边栏切换占用，请换一个。")
+            return false
+        }
+        guard let selectionHotKeyRegistrationHandler else {
+            selectionShortcutError = L10n.string("快捷键服务尚未就绪。")
+            return false
+        }
+        if let error = selectionHotKeyRegistrationHandler(newShortcut) {
+            selectionShortcutError = error
+            return false
+        }
+        selectionShortcut = newShortcut
+        selectionShortcutError = nil
+        return true
+    }
+
+    func resetSelectionShortcut() {
+        _ = applySelectionShortcut(.selectionDefault)
     }
 
     // MARK: - Launch at login

@@ -24,6 +24,12 @@ struct AppShortcut: Codable, Equatable {
         label: "⌘\\"
     )
 
+    static let selectionDefault = AppShortcut(
+        keyCode: UInt32(kVK_ANSI_D),
+        modifiers: UInt32(optionKey),
+        label: "⌥D"
+    )
+
     var displayString: String {
         label.isEmpty ? Self.display(keyCode: keyCode, modifiers: modifiers) : label
     }

@@ -4,21 +4,26 @@ import DeepSeekFocusCore
 
 final class HotKeyManager {
     var onHotKey: (() -> Void)?
+    var onSecondaryHotKey: (() -> Void)?
 
-    private var hotKeyRef: EventHotKeyRef?
-    private var registeredShortcut: AppShortcut?
-    private var nextID: UInt32 = 1
+    private struct Registration {
+        var ref: EventHotKeyRef
+        var shortcut: AppShortcut
+    }
+
+    private var registrations: [UInt32: Registration] = [:]
     private var eventHandler: EventHandlerRef?
-    private let signature: OSType = 0x44534643 // "DSFC"
+    private let signature: OSType
 
-    init(onHotKey: (() -> Void)? = nil) {
+    init(signature: OSType = 0x44534643, onHotKey: (() -> Void)? = nil) {
+        self.signature = signature
         self.onHotKey = onHotKey
         installEventHandler()
     }
 
     deinit {
-        if let hotKeyRef {
-            UnregisterEventHotKey(hotKeyRef)
+        for registration in registrations.values {
+            UnregisterEventHotKey(registration.ref)
         }
         if let eventHandler {
             RemoveEventHandler(eventHandler)
@@ -26,15 +31,17 @@ final class HotKeyManager {
     }
 
     @discardableResult
-    func register(_ shortcut: AppShortcut) -> String? {
-        if shortcutsEqual(registeredShortcut, shortcut), hotKeyRef != nil {
+    func register(_ shortcut: AppShortcut, id: UInt32 = 1) -> String? {
+        if let existing = registrations[id],
+           existing.shortcut.keyCode == shortcut.keyCode,
+           existing.shortcut.modifiers == shortcut.modifiers {
             return nil
         }
         guard shortcut.isValid else {
             return L10n.string("这个快捷键无效，请至少使用一个修饰键（⌘、⌥、⌃），或选择功能键。")
         }
 
-        let hotKeyID = EventHotKeyID(signature: signature, id: nextID)
+        let hotKeyID = EventHotKeyID(signature: signature, id: id)
         var newRef: EventHotKeyRef?
         let status = RegisterEventHotKey(
             shortcut.keyCode,
@@ -49,26 +56,24 @@ final class HotKeyManager {
             return L10n.format("无法注册 %@。它可能已被其他应用或系统占用（%ld）。", shortcut.displayString, status)
         }
 
-        if let oldRef = hotKeyRef {
-            UnregisterEventHotKey(oldRef)
+        if let existing = registrations[id] {
+            UnregisterEventHotKey(existing.ref)
         }
-        hotKeyRef = newRef
-        registeredShortcut = shortcut
-        nextID &+= 1
+        registrations[id] = Registration(ref: newRef, shortcut: shortcut)
         return nil
     }
 
-    func unregister() {
-        if let hotKeyRef {
-            UnregisterEventHotKey(hotKeyRef)
+    func unregister(id: UInt32 = 1) {
+        if let existing = registrations.removeValue(forKey: id) {
+            UnregisterEventHotKey(existing.ref)
         }
-        hotKeyRef = nil
-        registeredShortcut = nil
     }
 
-    private func shortcutsEqual(_ lhs: AppShortcut?, _ rhs: AppShortcut) -> Bool {
-        guard let lhs else { return false }
-        return lhs.keyCode == rhs.keyCode && lhs.modifiers == rhs.modifiers
+    func unregisterAll() {
+        for registration in registrations.values {
+            UnregisterEventHotKey(registration.ref)
+        }
+        registrations.removeAll()
     }
 
     private func installEventHandler() {
@@ -80,7 +85,7 @@ final class HotKeyManager {
         InstallEventHandler(
             GetApplicationEventTarget(),
             { _, event, userData in
-                guard let event, let userData else { return noErr }
+                guard let event, let userData else { return OSStatus(eventNotHandledErr) }
                 let manager = Unmanaged<HotKeyManager>.fromOpaque(userData).takeUnretainedValue()
                 var hotKeyID = EventHotKeyID()
                 let status = GetEventParameter(
@@ -93,10 +98,15 @@ final class HotKeyManager {
                     &hotKeyID
                 )
                 guard status == noErr, hotKeyID.signature == manager.signature else {
-                    return noErr
+                    return OSStatus(eventNotHandledErr)
                 }
+                let id = hotKeyID.id
                 DispatchQueue.main.async {
-                    manager.onHotKey?()
+                    if id == 1 {
+                        manager.onHotKey?()
+                    } else if id == 2 {
+                        manager.onSecondaryHotKey?()
+                    }
                 }
                 return noErr
             },
