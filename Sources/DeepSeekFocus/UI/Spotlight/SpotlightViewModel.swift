@@ -273,6 +273,16 @@ final class SpotlightViewModel: ObservableObject {
         onRequestExpand?()
     }
 
+    /// Expand the compact palette without sending a message.
+    func expandToConversation() {
+        guard !isConversation, !isShowingSettings else { return }
+        isConversation = true
+        isHistoryPresented = false
+        onRequestExpand?()
+        focusToken &+= 1
+        requestScroll(force: true)
+    }
+
     func openHistory() {
         if !isConversation {
             isConversation = true

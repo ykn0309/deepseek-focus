@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import DeepSeekFocusCore
 
@@ -74,6 +75,8 @@ private struct SearchSurface: View {
             .foregroundStyle(.primary.opacity(0.92))
             .focused($fieldFocused)
             .onSubmit { model.submit() }
+            .help("按 ⌘E 展开对话")
+            .accessibilityHint("按 Command-E 展开对话")
             .layoutPriority(1)
 
             QuickModelControls(
@@ -150,6 +153,7 @@ private struct ConversationSurface: View {
     @ObservedObject var modelCatalog: ModelCatalog
     @Environment(\.colorScheme) private var colorScheme
     @State private var composerHeight: CGFloat = 24
+    @State private var isAtBottom = true
 
     var body: some View {
         HStack(spacing: 0) {
@@ -312,13 +316,25 @@ private struct ConversationSurface: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 22)
                 .padding(.bottom, 14)
-            }
-            .onChange(of: model.scrollTick) { _ in
-                DispatchQueue.main.async {
-                    proxy.scrollTo("conversation-bottom", anchor: .bottom)
+                .background {
+                    ScrollBottomObserver { atBottom in
+                        if isAtBottom != atBottom {
+                            isAtBottom = atBottom
+                        }
+                    }
+                    .frame(width: 0, height: 0)
                 }
             }
-            .onChange(of: model.isHistoryPresented) { _ in
+            .onChange(of: model.scrollTick) { _ in
+                guard isAtBottom else { return }
+                DispatchQueue.main.async {
+                    withAnimation(.easeOut(duration: 0.15)) {
+                        proxy.scrollTo("conversation-bottom", anchor: .bottom)
+                    }
+                }
+            }
+            .onChange(of: model.currentSessionID) { _ in
+                isAtBottom = true
                 DispatchQueue.main.async {
                     proxy.scrollTo("conversation-bottom", anchor: .bottom)
                 }
@@ -329,7 +345,40 @@ private struct ConversationSurface: View {
                         .transition(.opacity)
                 }
             }
+            .overlay(alignment: .bottomTrailing) {
+                if !isAtBottom, !model.turns.isEmpty {
+                    Button {
+                        isAtBottom = true
+                        withAnimation(.easeOut(duration: 0.18)) {
+                            proxy.scrollTo("conversation-bottom", anchor: .bottom)
+                        }
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "arrow.down")
+                                .font(.system(size: 9.5, weight: .semibold))
+                            Text("回到最新")
+                                .font(.system(size: 11, weight: .medium))
+                        }
+                        .foregroundStyle(.primary.opacity(0.78))
+                        .padding(.horizontal, 11)
+                        .padding(.vertical, 6)
+                        .background(.regularMaterial, in: Capsule())
+                        .overlay {
+                            Capsule()
+                                .strokeBorder(Color.primary.opacity(0.10), lineWidth: 0.8)
+                        }
+                        .shadow(color: .black.opacity(0.10), radius: 8, y: 3)
+                    }
+                    .buttonStyle(.plain)
+                    .help("回到最新输出")
+                    .accessibilityLabel("回到最新输出")
+                    .padding(.trailing, 24)
+                    .padding(.bottom, 16)
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                }
+            }
             .animation(.easeInOut(duration: 0.2), value: model.turns.isEmpty)
+            .animation(.easeInOut(duration: 0.16), value: isAtBottom)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -445,6 +494,97 @@ private struct ConversationSurface: View {
     }
 
 
+}
+
+// MARK: - Scroll position
+
+private struct ScrollBottomObserver: NSViewRepresentable {
+    var onChange: (Bool) -> Void
+
+    func makeNSView(context: Context) -> ObserverView {
+        let view = ObserverView()
+        view.onChange = onChange
+        return view
+    }
+
+    func updateNSView(_ nsView: ObserverView, context: Context) {
+        nsView.onChange = onChange
+        nsView.attachIfNeeded()
+    }
+
+    final class ObserverView: NSView {
+        var onChange: ((Bool) -> Void)?
+        private weak var scrollView: NSScrollView?
+        private var boundsObserver: NSObjectProtocol?
+        private var lastValue: Bool?
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            DispatchQueue.main.async { [weak self] in
+                self?.attachIfNeeded()
+            }
+        }
+
+        func attachIfNeeded() {
+            guard window != nil else { return }
+            guard let found = findScrollView() else { return }
+            if scrollView === found {
+                report()
+                return
+            }
+
+            detach()
+            scrollView = found
+            found.contentView.postsBoundsChangedNotifications = true
+            boundsObserver = NotificationCenter.default.addObserver(
+                forName: NSView.boundsDidChangeNotification,
+                object: found.contentView,
+                queue: .main
+            ) { [weak self] _ in
+                self?.report()
+            }
+            report()
+        }
+
+        private func findScrollView() -> NSScrollView? {
+            var view: NSView? = self
+            while let current = view {
+                if let found = current as? NSScrollView {
+                    return found
+                }
+                view = current.superview
+            }
+            return nil
+        }
+
+        private func report() {
+            guard let scrollView, let document = scrollView.documentView else { return }
+            let visible = scrollView.contentView.bounds
+            let contentHeight = document.bounds.height
+            guard contentHeight > 0 else { return }
+
+            let atBottom = visible.maxY >= contentHeight - 24
+            guard atBottom != lastValue else { return }
+            lastValue = atBottom
+            DispatchQueue.main.async { [weak self] in
+                self?.onChange?(atBottom)
+            }
+        }
+
+        private func detach() {
+            if let boundsObserver {
+                NotificationCenter.default.removeObserver(boundsObserver)
+                self.boundsObserver = nil
+            }
+            scrollView = nil
+        }
+
+        deinit {
+            if let boundsObserver {
+                NotificationCenter.default.removeObserver(boundsObserver)
+            }
+        }
+    }
 }
 
 // MARK: - Turn
