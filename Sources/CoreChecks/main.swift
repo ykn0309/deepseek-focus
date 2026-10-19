@@ -82,12 +82,24 @@ struct CoreChecks {
             ]),
             APIMessage.tool("result", toolCallID: "c1")
         ]
-        let selectionAsk = SelectionPrompt.make(text: "  Explain entropy  ", action: .ask, languageCode: "en")
+        let selectionAsk = SelectionPrompt.make(text: "  Explain entropy  ", action: .ask, targetLanguage: .chinese)
         check(selectionAsk == "Explain entropy", "selection ask trims and keeps text")
-        let selectionTranslate = SelectionPrompt.make(text: "Hello", action: .translate, languageCode: "zh-Hans")
-        check(selectionTranslate.contains("翻译成中文"), "selection translates non-Chinese text to Chinese")
-        let selectionTranslateChinese = SelectionPrompt.make(text: "你好", action: .translate, languageCode: "en")
-        check(selectionTranslateChinese.contains("into English"), "selection translates Chinese text to English")
+        let selectionTranslate = SelectionPrompt.make(text: "Hello", action: .translate, targetLanguage: .chinese)
+        check(selectionTranslate.contains("翻译成中文"), "selection translates to configured Chinese target")
+        let selectionTranslateEnglish = SelectionPrompt.make(text: "你好", action: .translate, targetLanguage: .english)
+        check(selectionTranslateEnglish.contains("into English"), "selection translates to configured English target")
+        check(TranslationTarget.systemDefault(for: "zh-Hans") == .chinese, "translation target follows Chinese system")
+        check(TranslationTarget.systemDefault(for: "en") == .english, "translation target follows English system")
+
+        let dictionaryJSON = #"""
+        ```json
+        {"term":"ephemeral","pronunciation":"/ɪˈfem(ə)rəl/","partOfSpeech":"adjective","definitions":[{"meaning":"lasting a very short time","example":"ephemeral pleasures"}],"examples":[{"text":"Fame is ephemeral.","translation":"名声转瞬即逝。"}],"synonyms":["fleeting","transient"],"notes":"正式用语"}
+        ```
+        """#
+        let dictionary = DictionaryEntry.parse(dictionaryJSON)
+        check(dictionary?.term == "ephemeral", "dictionary parse strips fences")
+        check(dictionary?.definitions.first?.meaning == "lasting a very short time", "dictionary parse definitions")
+        check(dictionary?.synonyms.count == 2, "dictionary parse synonyms")
 
         let reasoningOnly = APIMessage.assistant(content: nil, reasoningContent: "thinking")
         check(reasoningOnly.isEmptyAssistantMessage, "detects reasoning-only assistant messages")

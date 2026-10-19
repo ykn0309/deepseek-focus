@@ -94,7 +94,7 @@ final class SpotlightPanelController {
         model.input = SelectionPrompt.make(
             text: text,
             action: action,
-            languageCode: settings.resolvedLanguageCode
+            targetLanguage: settings.translationTarget
         )
         show()
         model.submit()

@@ -443,6 +443,26 @@ struct SettingsView: View {
 
             Divider()
 
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("翻译目标语言")
+                        .font(.system(size: 11.5, weight: .medium))
+                    Text("选区翻译统一输出为该语言。")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.tertiary)
+                }
+                Spacer()
+                FocusSelectMenu(
+                    options: TranslationTarget.allCases,
+                    selection: settings.translationTarget,
+                    title: { $0.title },
+                    width: 130,
+                    onSelect: { settings.translationTarget = $0 }
+                )
+            }
+
+            Divider()
+
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("开机自启动")

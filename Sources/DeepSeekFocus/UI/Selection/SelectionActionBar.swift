@@ -21,6 +21,16 @@ struct SelectionActionBar: View {
                 icon: "character.bubble",
                 action: { onSelect(.translate) }
             )
+
+            Divider()
+                .frame(height: 14)
+                .opacity(0.55)
+
+            SelectionBarButton(
+                title: "查词",
+                icon: "book.closed",
+                action: { onSelect(.dictionary) }
+            )
         }
         .padding(4)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))

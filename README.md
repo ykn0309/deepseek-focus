@@ -35,7 +35,8 @@ The build is ad-hoc signed and not notarized. If macOS blocks it on first launch
 - **Official model list**: verifies your DeepSeek API key and syncs available models and reasoning levels.
 - **Chinese and English UI**: follows the system language by default. The model prompt follows the UI language, while replies still match the language of your question. Each chat keeps the language it was created in; changing the UI later only affects new chats.
 - **In-app updates**: checks GitHub Releases, downloads and verifies the new build, installs it, and restarts. No manual download required.
-- **Selection actions**: select text in any app, press the selection shortcut, then choose **Ask DeepSeek** or **Translate**. Requires macOS Accessibility permission.
+- **Selection actions**: select text in any app, press the selection shortcut, then choose **Ask DeepSeek**, **Translate**, or **Look up**. Results appear in a small floating card; translations and dictionary lookups are not saved to history. Requires macOS Accessibility permission.
+- **Translation target**: follows the system language by default and can be set to Chinese or English.
 
 ## Versioning
 

@@ -4,17 +4,19 @@ import DeepSeekFocusCore
 
 @MainActor
 final class SelectionActionPanelController {
-    var onSelect: ((String, SelectionAction) -> Void)?
+    var onSelect: ((String, SelectionAction, NSPoint) -> Void)?
 
     private var panel: NSPanel?
     private var currentText = ""
+    private var currentAnchor = NSPoint.zero
     private var clickMonitor: Any?
     private var keyMonitor: Any?
 
-    private let panelSize = NSSize(width: 232, height: 36)
+    private let panelSize = NSSize(width: 300, height: 36)
 
     func show(text: String, near anchor: NSPoint) {
         currentText = text
+        currentAnchor = anchor
         let panel = makePanelIfNeeded()
         position(panel, near: anchor)
         NSApp.activate(ignoringOtherApps: true)
@@ -55,8 +57,9 @@ final class SelectionActionPanelController {
             rootView: SelectionActionBar { [weak self] action in
                 guard let self else { return }
                 let text = self.currentText
+                let anchor = self.currentAnchor
                 self.hide()
-                self.onSelect?(text, action)
+                self.onSelect?(text, action, anchor)
             }
         )
         self.panel = panel

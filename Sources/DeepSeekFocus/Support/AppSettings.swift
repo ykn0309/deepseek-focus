@@ -67,6 +67,7 @@ final class AppSettings: ObservableObject {
         static let expandShortcut = "deepseek.expandShortcut"
         static let sidebarShortcut = "deepseek.sidebarShortcut"
         static let selectionShortcut = "deepseek.selectionShortcut"
+        static let translationTarget = "deepseek.translationTarget"
         static let hasLaunched = "deepseek.hasLaunched"
         static let lastLaunchedVersion = "deepseek.lastLaunchedVersion"
         static let appLanguage = "deepseek.appLanguage"
@@ -87,6 +88,9 @@ final class AppSettings: ObservableObject {
     }
     @Published var webSearchMode: WebSearchMode {
         didSet { defaults.set(webSearchMode.rawValue, forKey: Key.searchMode) }
+    }
+    @Published var translationTarget: TranslationTarget {
+        didSet { defaults.set(translationTarget.rawValue, forKey: Key.translationTarget) }
     }
     @Published var appLanguage: AppLanguage {
         didSet {
@@ -180,6 +184,12 @@ final class AppSettings: ObservableObject {
         let language = AppLanguage(rawValue: defaults.string(forKey: Key.appLanguage) ?? "") ?? .system
         self.appLanguage = language
         self.showMenuBarIcon = defaults.object(forKey: Key.showMenuBarIcon) as? Bool ?? true
+        if let raw = defaults.string(forKey: Key.translationTarget),
+           let target = TranslationTarget(rawValue: raw) {
+            self.translationTarget = target
+        } else {
+            self.translationTarget = TranslationTarget.systemDefault(for: AppLanguage.systemCode)
+        }
         L10n.languageCode = language.resolvedCode
         if let data = defaults.data(forKey: Key.shortcut),
            let decoded = try? JSONDecoder().decode(AppShortcut.self, from: data) {

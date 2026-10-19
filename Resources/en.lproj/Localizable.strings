@@ -21,6 +21,7 @@
 "下载或安装更新失败：%@" = "Update download or install failed: %@";
 "下载更新失败。" = "The update download failed.";
 "不展示思考过程，响应最快。" = "No reasoning trace; fastest responses.";
+"中文" = "Chinese";
 "为了读取其他应用中的选中文字，请在系统设置中允许 DeepSeek Focus 使用辅助功能。允许后再次按快捷键即可；如仍无效，请重启 DeepSeek Focus。" = "To read selected text from other apps, allow DeepSeek Focus in System Settings → Privacy & Security → Accessibility. Then press the shortcut again; if it still does not work, restart DeepSeek Focus.";
 "今天" = "Today";
 "从 GitHub Releases 检查并安装最新版本。" = "Check GitHub Releases for the latest version and install it here.";
@@ -30,6 +31,7 @@
 "代码" = "Code";
 "你的对话只在需要时发送给 DeepSeek，不会经过任何第三方中转。应用不包含账号系统、遥测或分析 SDK。" = "Your conversations are sent to DeepSeek only when needed, with no third-party relay. The app has no accounts, telemetry, or analytics SDKs.";
 "使用内置的模型信息" = "Using built-in model information";
+"例句" = "Examples";
 "侧边栏快捷键" = "Sidebar shortcut";
 "保存" = "Save";
 "修改 API Key 后请点击“验证并同步”。" = "After changing the API key, click Verify & Sync.";
@@ -59,12 +61,15 @@
 "取消" = "Cancel";
 "只使用模型已有知识回答，不发起任何联网搜索。" = "Answer only from the model's existing knowledge, with no web search.";
 "可以从 GitHub Releases 下载新版本。" = "You can download the new version from GitHub Releases.";
+"同义词" = "Synonyms";
 "唤起与应用" = "Activation & App";
 "唤起快捷键：%@" = "Shortcut: %@";
 "在任何应用中唤出 DeepSeek Focus" = "Open DeepSeek Focus from any app";
+"在对话中继续" = "Continue in chat";
 "在展开页中显示或隐藏历史侧边栏。" = "Show or hide the history sidebar in the expanded view.";
 "在菜单栏显示图标" = "Show icon in menu bar";
 "填入输入框" = "Fill the composer";
+"备注" = "Notes";
 "复制" = "Copy";
 "复制代码" = "Copy code";
 "好" = "OK";
@@ -93,6 +98,7 @@
 "录制" = "Record";
 "待配置" = "Setup needed";
 "待验证" = "Not verified";
+"快捷回答不会保存到历史" = "Quick answers are not saved to history";
 "快捷键唤起或新建会话时使用；在单个会话里修改的配置只记录在该会话中。模型列表来自 DeepSeek 官方 /models 接口。" = "Used when a chat is opened from the shortcut or created new. Changes inside a chat are saved only for that chat. Models come from DeepSeek's official /models endpoint.";
 "快捷键服务尚未就绪。" = "Shortcut service is not ready.";
 "思考中…" = "Thinking…";
@@ -154,6 +160,8 @@
 "服务" = "Services";
 "未命名会话" = "Untitled chat";
 "查看全部 %ld 个来源" = "Show all %ld sources";
+"查词" = "Look up";
+"查词结果不会保存到历史" = "Dictionary lookups are not saved to history";
 "标准思考深度。" = "Standard reasoning depth.";
 "检查与更新" = "Updates";
 "检查更新" = "Check for Updates";
@@ -177,12 +185,15 @@
 "正在搜索「%@」" = "Searching for “%@”";
 "正在搜索「%@」…" = "Searching for “%@”…";
 "正在整理搜索结果…" = "Organizing search results…";
+"正在查询…" = "Looking up…";
 "正在检查…" = "Checking…";
 "正在检查更新…" = "Checking for Updates…";
 "正在检索网页…" = "Searching the web…";
+"正在生成…" = "Generating…";
 "正在验证" = "Verifying";
 "正在验证 API Key…" = "Verifying the API key…";
 "没有找到匹配的会话" = "No matching chats";
+"没有返回结果" = "No result";
 "流式数据格式不正确" = "Invalid streaming data format";
 "清除搜索" = "Clear search";
 "点击「录制」设置侧边栏快捷键，仅在展开页中生效。" = "Click Record to set the sidebar shortcut. It only applies to the expanded view.";
@@ -202,6 +213,8 @@
 "缺少 HTTP 响应" = "Missing HTTP response";
 "网络连接失败：%@" = "Network error: %@";
 "翻译" = "Translate";
+"翻译目标语言" = "Translation target";
+"翻译结果不会保存到历史" = "Translation is not saved to history";
 "联网" = "Web";
 "联网搜索" = "Web Search";
 "自动" = "Auto";
@@ -217,6 +230,7 @@
 "请在系统设置中重新开启 DeepSeek Focus 的辅助功能权限，然后重启应用。" = "Enable Accessibility for DeepSeek Focus again in System Settings, then restart the app.";
 "请把应用放在 /Applications 后再自动更新。" = "Move the app to /Applications before using automatic updates.";
 "请按下新的快捷键…" = "Press a new shortcut…";
+"请检查 API Key 或稍后重试。" = "Check your API key or try again later.";
 "请求内容过大。" = "The request is too large.";
 "请求参数有误。" = "Invalid request.";
 "请求参数有误：%@" = "Invalid request: %@";
@@ -243,6 +257,8 @@
 "退出 DeepSeek 聚焦" = "Quit DeepSeek Focus";
 "选中文字后显示查询与翻译菜单" = "Show query and translate choices for selected text";
 "选区快捷操作" = "Selection actions";
+"选区翻译统一输出为该语言。" = "Selection translations always use this language.";
+"释义" = "Meaning";
 "重做" = "Redo";
 "重命名" = "Rename";
 "重命名会话" = "Rename chat";

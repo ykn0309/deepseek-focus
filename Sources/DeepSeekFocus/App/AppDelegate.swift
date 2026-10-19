@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panelController: SpotlightPanelController!
     private var hotKeyManager: HotKeyManager!
     private var selectionPanelController: SelectionActionPanelController!
+    private var selectionResultPanelController: SelectionResultPanelController!
     private var statusItem: NSStatusItem!
     private var statusMenu: NSMenu?
     private var statusShortcutInfoItem: NSMenuItem?
@@ -32,9 +33,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             historyStore: historyStore
         )
         selectionPanelController = SelectionActionPanelController()
-        selectionPanelController.onSelect = { [weak self] text, action in
+        selectionResultPanelController = SelectionResultPanelController(settings: settings)
+        selectionResultPanelController.onContinue = { [weak self] text in
             guard let self else { return }
-            self.panelController.startSelectionAction(text: text, action: action)
+            self.panelController.startSelectionAction(text: text, action: .ask)
+        }
+        selectionPanelController.onSelect = { [weak self] text, action, anchor in
+            guard let self else { return }
+            self.selectionResultPanelController.show(text: text, action: action, anchor: anchor)
         }
 
         installMainMenu()
@@ -119,6 +125,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidResignActive(_ notification: Notification) {
         panelController?.hide()
         selectionPanelController?.hide()
+        selectionResultPanelController?.hide()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -126,6 +133,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settings?.flushAPIKey()
         hotKeyManager?.unregisterAll()
         selectionPanelController?.hide()
+        selectionResultPanelController?.hide()
     }
 
     private func handleSelectionHotKey() {
