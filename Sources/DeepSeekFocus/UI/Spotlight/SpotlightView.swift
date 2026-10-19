@@ -345,7 +345,7 @@ private struct ConversationSurface: View {
                         .transition(.opacity)
                 }
             }
-            .overlay(alignment: .bottomTrailing) {
+            .overlay(alignment: .bottom) {
                 if !isAtBottom, !model.turns.isEmpty {
                     Button {
                         isAtBottom = true
@@ -372,7 +372,6 @@ private struct ConversationSurface: View {
                     .buttonStyle(.plain)
                     .help("回到最新输出")
                     .accessibilityLabel("回到最新输出")
-                    .padding(.trailing, 24)
                     .padding(.bottom, 16)
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
