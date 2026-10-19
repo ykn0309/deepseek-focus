@@ -47,12 +47,13 @@ final class SelectionResultModel: ObservableObject {
             prompt = SelectionDictionaryPrompt.make(text: text, languageCode: settings.resolvedLanguageCode)
         }
 
+        let selectionConfiguration = settings.selectionConfiguration(for: action)
         let configuration = ChatAgentConfiguration(
             apiKey: settings.apiKey,
             baseURL: settings.baseURL,
-            model: settings.selectedModelID,
-            reasoningEffort: settings.reasoningEffort,
-            webSearchEnabled: false,
+            model: selectionConfiguration.modelID.isEmpty ? settings.selectedModelID : selectionConfiguration.modelID,
+            reasoningEffort: selectionConfiguration.reasoningEffort.isEmpty ? settings.reasoningEffort : selectionConfiguration.reasoningEffort,
+            webSearchEnabled: selectionConfiguration.webSearchEnabled,
             languageCode: settings.resolvedLanguageCode,
             now: Date(),
             timeZone: .current

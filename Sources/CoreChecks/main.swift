@@ -90,6 +90,26 @@ struct CoreChecks {
         check(selectionTranslateEnglish.contains("into English"), "selection translates to configured English target")
         check(TranslationTarget.systemDefault(for: "zh-Hans") == .chinese, "translation target follows Chinese system")
         check(TranslationTarget.systemDefault(for: "en") == .english, "translation target follows English system")
+        let askDefault = SelectionActionConfiguration.defaultConfiguration(
+            for: .ask,
+            modelID: "deepseek-flash",
+            reasoningEffort: "high"
+        )
+        check(askDefault.webSearchEnabled, "ask selection defaults to web search")
+        let translateDefault = SelectionActionConfiguration.defaultConfiguration(
+            for: .translate,
+            modelID: "deepseek-flash",
+            reasoningEffort: "high"
+        )
+        check(translateDefault.reasoningEffort == "none", "translate selection defaults to thinking off")
+        check(!translateDefault.webSearchEnabled, "translate selection defaults to no web search")
+        let dictionaryDefault = SelectionActionConfiguration.defaultConfiguration(
+            for: .dictionary,
+            modelID: "deepseek-flash",
+            reasoningEffort: "high"
+        )
+        check(dictionaryDefault.reasoningEffort == "none", "dictionary selection defaults to thinking off")
+        check(!dictionaryDefault.webSearchEnabled, "dictionary selection defaults to no web search")
 
         let dictionaryJSON = #"""
         ```json

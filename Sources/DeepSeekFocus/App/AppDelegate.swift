@@ -137,6 +137,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func handleSelectionHotKey() {
+        guard settings.selectionActionsEnabled else { return }
         guard SelectionAccess.isTrusted else {
             presentAccessibilityAlert()
             return

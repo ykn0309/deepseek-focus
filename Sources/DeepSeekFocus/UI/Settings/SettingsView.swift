@@ -31,6 +31,7 @@ struct SettingsView: View {
                     connectionSection
                     behaviorSection
                     modelSection
+                    selectionSection
                     privacyNote
                 }
                 .padding(.horizontal, 26)
@@ -332,6 +333,146 @@ struct SettingsView: View {
                         .padding(.leading, 76)
                 }
             }
+        }
+    }
+
+    // MARK: - Selection actions
+
+    private var selectionSection: some View {
+        SettingsSection(
+            title: "选区快捷操作",
+            subtitle: "选中文字后按快捷键显示快捷栏；翻译和查词默认关闭思考，问 DeepSeek 默认开启联网搜索。",
+            icon: "text.cursor"
+        ) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("启用选区快捷操作")
+                            .font(.system(size: 11.5, weight: .medium))
+                        Text("关闭后，选区快捷键不会弹出快捷栏。")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.tertiary)
+                    }
+                    Spacer()
+                    Toggle("", isOn: $settings.selectionActionsEnabled)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                        .controlSize(.small)
+                        .tint(FocusTheme.accent)
+                }
+
+                Divider()
+
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 10) {
+                        Text("").frame(width: 94, alignment: .leading)
+                        Text("模型")
+                            .frame(width: 170, alignment: .leading)
+                        Text("思考")
+                            .frame(width: 110, alignment: .leading)
+                        Text("联网")
+                            .frame(width: 50, alignment: .leading)
+                        Spacer()
+                    }
+                    .font(.system(size: 9.5, weight: .medium))
+                    .foregroundStyle(.tertiary)
+
+                    selectionConfigurationRow(
+                        action: .ask,
+                        title: "问 DeepSeek",
+                        icon: "sparkles",
+                        configuration: $settings.askSelectionConfiguration
+                    )
+                    Divider()
+                    selectionConfigurationRow(
+                        action: .translate,
+                        title: "翻译",
+                        icon: "character.bubble",
+                        configuration: $settings.translateSelectionConfiguration
+                    )
+                    Divider()
+                    selectionConfigurationRow(
+                        action: .dictionary,
+                        title: "查词",
+                        icon: "book.closed",
+                        configuration: $settings.dictionarySelectionConfiguration
+                    )
+                }
+                .opacity(settings.selectionActionsEnabled ? 1 : 0.45)
+                .disabled(!settings.selectionActionsEnabled)
+            }
+        }
+    }
+
+    private func selectionConfigurationRow(
+        action: SelectionAction,
+        title: LocalizedStringKey,
+        icon: String,
+        configuration: Binding<SelectionActionConfiguration>
+    ) -> some View {
+        let currentModel = modelCatalog.models.first(where: { $0.id == configuration.wrappedValue.modelID })
+            ?? selectedModel
+        let levels = settings.reasoningLevels(for: currentModel)
+        let currentEffort = levels.contains(configuration.wrappedValue.reasoningEffort)
+            ? configuration.wrappedValue.reasoningEffort
+            : (action == .ask ? currentModel.defaultReasoningLevel : "none")
+        let levelOptions = levels.map { ReasoningLevelOption(id: $0) }
+
+        return HStack(spacing: 10) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 14)
+                Text(title)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.primary.opacity(0.76))
+                    .lineLimit(1)
+            }
+            .frame(width: 94, alignment: .leading)
+
+            FocusSelectMenu(
+                options: modelCatalog.models,
+                selection: currentModel,
+                title: { $0.displayName },
+                width: 170
+            ) { model in
+                var updated = configuration.wrappedValue
+                updated.modelID = model.id
+                if !settings.reasoningLevels(for: model).contains(updated.reasoningEffort) {
+                    updated.reasoningEffort = action == .ask
+                        ? model.defaultReasoningLevel
+                        : "none"
+                }
+                configuration.wrappedValue = updated
+            }
+
+            FocusSelectMenu(
+                options: levelOptions,
+                selection: ReasoningLevelOption(id: currentEffort),
+                title: { $0.title },
+                width: 110
+            ) { level in
+                var updated = configuration.wrappedValue
+                updated.reasoningEffort = level.id
+                configuration.wrappedValue = updated
+            }
+
+            Toggle("", isOn: Binding(
+                get: { configuration.wrappedValue.webSearchEnabled },
+                set: { enabled in
+                    var updated = configuration.wrappedValue
+                    updated.webSearchEnabled = enabled
+                    configuration.wrappedValue = updated
+                }
+            ))
+            .labelsHidden()
+            .toggleStyle(.switch)
+            .controlSize(.mini)
+            .tint(FocusTheme.accent)
+            .frame(width: 50, alignment: .leading)
+
+            Spacer(minLength: 0)
         }
     }
 
@@ -732,6 +873,14 @@ struct SettingsView: View {
     private var appVersion: String {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
         return "v\(version)"
+    }
+}
+
+private struct ReasoningLevelOption: Identifiable, Equatable {
+    let id: String
+
+    var title: String {
+        ReasoningEffortCopy.title(for: id)
     }
 }
 

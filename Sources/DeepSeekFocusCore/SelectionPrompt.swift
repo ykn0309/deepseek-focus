@@ -6,6 +6,39 @@ public enum SelectionAction: String, Sendable {
     case dictionary
 }
 
+public struct SelectionActionConfiguration: Codable, Equatable, Sendable {
+    public var modelID: String
+    public var reasoningEffort: String
+    public var webSearchEnabled: Bool
+
+    public init(modelID: String, reasoningEffort: String, webSearchEnabled: Bool) {
+        self.modelID = modelID
+        self.reasoningEffort = reasoningEffort
+        self.webSearchEnabled = webSearchEnabled
+    }
+
+    public static func defaultConfiguration(
+        for action: SelectionAction,
+        modelID: String,
+        reasoningEffort: String
+    ) -> SelectionActionConfiguration {
+        switch action {
+        case .ask:
+            return SelectionActionConfiguration(
+                modelID: modelID,
+                reasoningEffort: reasoningEffort,
+                webSearchEnabled: true
+            )
+        case .translate, .dictionary:
+            return SelectionActionConfiguration(
+                modelID: modelID,
+                reasoningEffort: "none",
+                webSearchEnabled: false
+            )
+        }
+    }
+}
+
 public enum TranslationTarget: String, CaseIterable, Codable, Sendable, Identifiable {
     case chinese = "zh-Hans"
     case english = "en"

@@ -43,6 +43,7 @@
 "关闭" = "Off";
 "关闭历史会话" = "Close history";
 "关闭后仍可用全局快捷键唤起；按 ⌘, 打开设置。" = "When hidden, you can still open the panel with the global shortcut and Settings with ⌘,.";
+"关闭后，选区快捷键不会弹出快捷栏。" = "When off, the selection shortcut will not open the quick action bar.";
 "关闭搜索" = "Search off";
 "关闭窗口" = "Close Window";
 "切换推理等级" = "Switch reasoning level";
@@ -62,6 +63,7 @@
 "只使用模型已有知识回答，不发起任何联网搜索。" = "Answer only from the model's existing knowledge, with no web search.";
 "可以从 GitHub Releases 下载新版本。" = "You can download the new version from GitHub Releases.";
 "同义词" = "Synonyms";
+"启用选区快捷操作" = "Enable selection actions";
 "唤起与应用" = "Activation & App";
 "唤起快捷键：%@" = "Shortcut: %@";
 "在任何应用中唤出 DeepSeek Focus" = "Open DeepSeek Focus from any app";
@@ -101,6 +103,7 @@
 "快捷回答不会保存到历史" = "Quick answers are not saved to history";
 "快捷键唤起或新建会话时使用；在单个会话里修改的配置只记录在该会话中。模型列表来自 DeepSeek 官方 /models 接口。" = "Used when a chat is opened from the shortcut or created new. Changes inside a chat are saved only for that chat. Models come from DeepSeek's official /models endpoint.";
 "快捷键服务尚未就绪。" = "Shortcut service is not ready.";
+"思考" = "Thinking";
 "思考中…" = "Thinking…";
 "思考了 %.1f 秒" = "Thought for %.1f s";
 "思考过程" = "Thought process";
@@ -255,6 +258,7 @@
 "连接失败" = "Connection failed";
 "退出" = "Quit";
 "退出 DeepSeek 聚焦" = "Quit DeepSeek Focus";
+"选中文字后按快捷键显示快捷栏；翻译和查词默认关闭思考，问 DeepSeek 默认开启联网搜索。" = "Press the shortcut after selecting text to show the quick action bar. Translation and Look up start with thinking off; Ask DeepSeek starts with web search on.";
 "选中文字后显示查询与翻译菜单" = "Show query and translate choices for selected text";
 "选区快捷操作" = "Selection actions";
 "选区翻译统一输出为该语言。" = "Selection translations always use this language.";

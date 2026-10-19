@@ -68,6 +68,10 @@ final class AppSettings: ObservableObject {
         static let sidebarShortcut = "deepseek.sidebarShortcut"
         static let selectionShortcut = "deepseek.selectionShortcut"
         static let translationTarget = "deepseek.translationTarget"
+        static let selectionActionsEnabled = "deepseek.selectionActionsEnabled"
+        static let askSelectionConfiguration = "deepseek.selection.ask"
+        static let translateSelectionConfiguration = "deepseek.selection.translate"
+        static let dictionarySelectionConfiguration = "deepseek.selection.dictionary"
         static let hasLaunched = "deepseek.hasLaunched"
         static let lastLaunchedVersion = "deepseek.lastLaunchedVersion"
         static let appLanguage = "deepseek.appLanguage"
@@ -91,6 +95,18 @@ final class AppSettings: ObservableObject {
     }
     @Published var translationTarget: TranslationTarget {
         didSet { defaults.set(translationTarget.rawValue, forKey: Key.translationTarget) }
+    }
+    @Published var selectionActionsEnabled: Bool {
+        didSet { defaults.set(selectionActionsEnabled, forKey: Key.selectionActionsEnabled) }
+    }
+    @Published var askSelectionConfiguration: SelectionActionConfiguration {
+        didSet { save(askSelectionConfiguration, forKey: Key.askSelectionConfiguration) }
+    }
+    @Published var translateSelectionConfiguration: SelectionActionConfiguration {
+        didSet { save(translateSelectionConfiguration, forKey: Key.translateSelectionConfiguration) }
+    }
+    @Published var dictionarySelectionConfiguration: SelectionActionConfiguration {
+        didSet { save(dictionarySelectionConfiguration, forKey: Key.dictionarySelectionConfiguration) }
     }
     @Published var appLanguage: AppLanguage {
         didSet {
@@ -177,8 +193,10 @@ final class AppSettings: ObservableObject {
         let environmentKey = environment["DEEPSEEK_FOCUS_API_KEY"] ?? ""
         self.apiKey = storedKey.isEmpty ? environmentKey : storedKey
 
-        self.selectedModelID = defaults.string(forKey: Key.model) ?? "deepseek-flash"
-        self.reasoningEffort = defaults.string(forKey: Key.reasoning) ?? "high"
+        let defaultModelID = defaults.string(forKey: Key.model) ?? "deepseek-flash"
+        let defaultReasoning = defaults.string(forKey: Key.reasoning) ?? "high"
+        self.selectedModelID = defaultModelID
+        self.reasoningEffort = defaultReasoning
         let storedMode = defaults.string(forKey: Key.searchMode)
         self.webSearchMode = WebSearchMode(rawValue: storedMode ?? "") ?? .automatic
         let language = AppLanguage(rawValue: defaults.string(forKey: Key.appLanguage) ?? "") ?? .system
@@ -190,6 +208,34 @@ final class AppSettings: ObservableObject {
         } else {
             self.translationTarget = TranslationTarget.systemDefault(for: AppLanguage.systemCode)
         }
+        self.selectionActionsEnabled = defaults.object(forKey: Key.selectionActionsEnabled) as? Bool ?? true
+        self.askSelectionConfiguration = Self.loadConfiguration(
+            from: defaults,
+            key: Key.askSelectionConfiguration,
+            fallback: .defaultConfiguration(
+                for: .ask,
+                modelID: defaultModelID,
+                reasoningEffort: defaultReasoning
+            )
+        )
+        self.translateSelectionConfiguration = Self.loadConfiguration(
+            from: defaults,
+            key: Key.translateSelectionConfiguration,
+            fallback: .defaultConfiguration(
+                for: .translate,
+                modelID: defaultModelID,
+                reasoningEffort: defaultReasoning
+            )
+        )
+        self.dictionarySelectionConfiguration = Self.loadConfiguration(
+            from: defaults,
+            key: Key.dictionarySelectionConfiguration,
+            fallback: .defaultConfiguration(
+                for: .dictionary,
+                modelID: defaultModelID,
+                reasoningEffort: defaultReasoning
+            )
+        )
         L10n.languageCode = language.resolvedCode
         if let data = defaults.data(forKey: Key.shortcut),
            let decoded = try? JSONDecoder().decode(AppShortcut.self, from: data) {
@@ -228,6 +274,31 @@ final class AppSettings: ObservableObject {
 
     var resolvedLanguageCode: String { appLanguage.resolvedCode }
 
+    func selectionConfiguration(for action: SelectionAction) -> SelectionActionConfiguration {
+        switch action {
+        case .ask: return askSelectionConfiguration
+        case .translate: return translateSelectionConfiguration
+        case .dictionary: return dictionarySelectionConfiguration
+        }
+    }
+
+    func setSelectionConfiguration(
+        _ configuration: SelectionActionConfiguration,
+        for action: SelectionAction
+    ) {
+        switch action {
+        case .ask: askSelectionConfiguration = configuration
+        case .translate: translateSelectionConfiguration = configuration
+        case .dictionary: dictionarySelectionConfiguration = configuration
+        }
+    }
+
+    func selectionModel(for configuration: SelectionActionConfiguration, in models: [DeepSeekModel]) -> DeepSeekModel? {
+        models.first(where: { $0.id == configuration.modelID })
+            ?? models.first(where: { $0.id == selectedModelID })
+            ?? models.first
+    }
+
     func reasoningLevels(for model: DeepSeekModel) -> [String] {
         ["none"] + model.supportedReasoningLevels
     }
@@ -256,6 +327,42 @@ final class AppSettings: ObservableObject {
         if !reasoningLevels(for: current).contains(reasoningEffort) {
             reasoningEffort = current.defaultReasoningLevel
         }
+        reconcileSelectionConfigurations(with: models)
+    }
+
+    private func reconcileSelectionConfigurations(with models: [DeepSeekModel]) {
+        guard !models.isEmpty else { return }
+        for action in [SelectionAction.ask, .translate, .dictionary] {
+            var configuration = selectionConfiguration(for: action)
+            if !models.contains(where: { $0.id == configuration.modelID }) {
+                configuration.modelID = selectedModelID
+            }
+            if let model = models.first(where: { $0.id == configuration.modelID }),
+               !reasoningLevels(for: model).contains(configuration.reasoningEffort) {
+                configuration.reasoningEffort = action == .ask
+                    ? model.defaultReasoningLevel
+                    : "none"
+            }
+            setSelectionConfiguration(configuration, for: action)
+        }
+    }
+
+    private func save(_ configuration: SelectionActionConfiguration, forKey key: String) {
+        if let data = try? JSONEncoder().encode(configuration) {
+            defaults.set(data, forKey: key)
+        }
+    }
+
+    private static func loadConfiguration(
+        from defaults: UserDefaults,
+        key: String,
+        fallback: SelectionActionConfiguration
+    ) -> SelectionActionConfiguration {
+        guard let data = defaults.data(forKey: key),
+              let decoded = try? JSONDecoder().decode(SelectionActionConfiguration.self, from: data) else {
+            return fallback
+        }
+        return decoded
     }
 
     // MARK: - Shortcut
