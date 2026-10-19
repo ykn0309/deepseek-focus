@@ -185,21 +185,13 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                         .frame(width: 66, alignment: .leading)
 
-                    Picker("", selection: Binding(
-                        get: { selectedModel.id },
-                        set: { id in
-                            if let model = modelCatalog.models.first(where: { $0.id == id }) {
-                                settings.selectModel(model)
-                            }
-                        }
-                    )) {
-                        ForEach(modelCatalog.models) { model in
-                            Text(model.displayName).tag(model.id)
-                        }
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.menu)
-                    .frame(width: 240, alignment: .leading)
+                    FocusSelectMenu(
+                        options: modelCatalog.models,
+                        selection: selectedModel,
+                        title: { $0.displayName },
+                        width: 240,
+                        onSelect: { settings.selectModel($0) }
+                    )
 
                     Spacer()
 
@@ -422,14 +414,13 @@ struct SettingsView: View {
                         .foregroundStyle(.tertiary)
                 }
                 Spacer()
-                Picker("", selection: $settings.appLanguage) {
-                    ForEach(AppLanguage.allCases) { language in
-                        Text(language.title).tag(language)
-                    }
-                }
-                .labelsHidden()
-                .pickerStyle(.menu)
-                .frame(width: 150, alignment: .trailing)
+                FocusSelectMenu(
+                    options: AppLanguage.allCases,
+                    selection: settings.appLanguage,
+                    title: { $0.title },
+                    width: 150,
+                    onSelect: { settings.appLanguage = $0 }
+                )
             }
 
             Divider()
