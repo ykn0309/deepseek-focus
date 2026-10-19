@@ -75,8 +75,8 @@ private struct SearchSurface: View {
             .foregroundStyle(.primary.opacity(0.92))
             .focused($fieldFocused)
             .onSubmit { model.submit() }
-            .help("按 ⌘E 展开对话")
-            .accessibilityHint("按 Command-E 展开对话")
+            .help("按 ⌘↩ 展开对话")
+            .accessibilityHint("按 Command-Return 展开对话")
             .layoutPriority(1)
 
             QuickModelControls(

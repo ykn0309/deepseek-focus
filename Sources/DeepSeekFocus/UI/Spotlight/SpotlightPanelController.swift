@@ -264,9 +264,7 @@ final class SpotlightPanelController {
         }
 
         if flags.contains(.command), !flags.contains(.option), !flags.contains(.control) {
-            if !composing,
-               !model.isConversation,
-               event.charactersIgnoringModifiers?.lowercased() == "e" || event.keyCode == 36 {
+            if !composing, !model.isConversation, event.keyCode == 36 {
                 model.expandToConversation()
                 return nil
             }
