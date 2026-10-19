@@ -281,84 +281,56 @@ struct SettingsView: View {
 
                 Divider()
 
-                VStack(alignment: .leading, spacing: 9) {
-                    HStack {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 10) {
                         Text("联网搜索")
                             .font(.system(size: 11.5, weight: .medium))
                             .foregroundStyle(.secondary)
+                            .frame(width: 66, alignment: .leading)
+
+                        HStack(spacing: 2) {
+                            ForEach(WebSearchMode.allCases) { mode in
+                                let isSelected = settings.webSearchMode == mode
+                                Button {
+                                    settings.webSearchMode = mode
+                                } label: {
+                                    Text(LocalizedStringKey(mode.title))
+                                        .font(.system(size: 10.5, weight: .medium))
+                                        .foregroundStyle(isSelected ? Color.white : Color.primary.opacity(0.68))
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 5)
+                                        .background(
+                                            isSelected ? FocusTheme.accent : Color.clear,
+                                            in: Capsule()
+                                        )
+                                        .contentShape(Capsule())
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(2)
+                        .background(Color.primary.opacity(0.045), in: Capsule())
+                        .overlay {
+                            Capsule()
+                                .strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.7)
+                        }
+                        .animation(.easeOut(duration: 0.15), value: settings.webSearchMode)
+
                         Spacer()
+
                         Text("新会话默认")
                             .font(.system(size: 9.5))
                             .foregroundStyle(.quaternary)
                     }
 
-                    HStack(alignment: .top, spacing: 10) {
-                        ForEach(WebSearchMode.allCases) { mode in
-                            searchModeCard(mode)
-                        }
-                    }
-
-                    Label("搜索请求通过 DeepSeek 官方 /v1/tools/search 接口完成，可能会产生少量调用费用。", systemImage: "info.circle")
+                    Text(LocalizedStringKey(settings.webSearchMode.detail))
                         .font(.system(size: 10))
                         .foregroundStyle(.tertiary)
                         .fixedSize(horizontal: false, vertical: true)
+                        .padding(.leading, 76)
                 }
             }
         }
-    }
-
-    // MARK: - Search
-
-
-    private func searchModeCard(_ mode: WebSearchMode) -> some View {
-        let isSelected = settings.webSearchMode == mode
-        return Button {
-            settings.webSearchMode = mode
-        } label: {
-            HStack(alignment: .top, spacing: 9) {
-                ZStack {
-                    Circle()
-                        .strokeBorder(
-                            isSelected ? FocusTheme.accent : Color.primary.opacity(0.18),
-                            lineWidth: isSelected ? 5 : 1
-                        )
-                        .frame(width: 14, height: 14)
-                }
-                .frame(width: 16, height: 16)
-                .padding(.top, 1)
-
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 5) {
-                        Image(systemName: mode == .automatic ? "sparkle.magnifyingglass" : "globe.slash")
-                            .font(.system(size: 10))
-                        Text(LocalizedStringKey(mode.title))
-                            .font(.system(size: 11.5, weight: .semibold))
-                    }
-                    Text(LocalizedStringKey(mode.detail))
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
-                        .lineSpacing(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .multilineTextAlignment(.leading)
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(11)
-            .frame(maxWidth: .infinity, minHeight: 88, alignment: .topLeading)
-            .background {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(isSelected ? FocusTheme.accent.opacity(0.065) : Color.primary.opacity(0.025))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .strokeBorder(
-                                isSelected ? FocusTheme.accent.opacity(0.35) : Color.primary.opacity(0.06),
-                                lineWidth: isSelected ? 1 : 0.7
-                            )
-                    }
-            }
-            .contentShape(RoundedRectangle(cornerRadius: 10))
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Behavior
