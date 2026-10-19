@@ -52,6 +52,6 @@ struct FocusSelectMenu<Item: Identifiable & Equatable>: View {
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
-        .fixedSize()
+        .frame(width: width, alignment: .leading)
     }
 }
