@@ -80,6 +80,7 @@ final class SpotlightViewModel: ObservableObject {
     @Published private(set) var isConversation = false
     @Published private(set) var isStreaming = false
     @Published private(set) var turns: [ConversationTurn] = []
+    @Published private(set) var generatingSessionIDs: Set<UUID> = []
     @Published private(set) var focusToken = 0
     @Published private(set) var scrollTick = 0
     @Published var isHistoryPresented = false
@@ -192,10 +193,15 @@ final class SpotlightViewModel: ObservableObject {
         )
         backgroundJobs[job.id] = job
         activeJob = job
+        generatingSessionIDs.insert(job.id)
+
+        // Appending the user message synchronously lets the session appear in
+        // history immediately, before the first token arrives.
+        let stream = job.engine.send(userText: text, configuration: configuration)
+        persistCurrentSessionIfNeeded(touch: true)
 
         let task = Task { [weak self] in
             guard let self else { return }
-            let stream = job.engine.send(userText: text, configuration: configuration)
             do {
                 for try await event in stream {
                     try Task.checkCancellation()
@@ -341,6 +347,7 @@ final class SpotlightViewModel: ObservableObject {
             job.task?.cancel()
         }
         backgroundJobs.removeAll()
+        generatingSessionIDs.removeAll()
         activeJob = nil
         streamTask = nil
         isStreaming = false
@@ -449,6 +456,7 @@ final class SpotlightViewModel: ObservableObject {
     func deleteHistorySession(_ session: ConversationSession) {
         if let job = backgroundJobs.removeValue(forKey: session.id) {
             job.task?.cancel()
+            generatingSessionIDs.remove(job.id)
             if activeJob === job {
                 activeJob = nil
                 streamTask = nil
@@ -728,6 +736,7 @@ final class SpotlightViewModel: ObservableObject {
 
         persist(job, touch: true)
         backgroundJobs.removeValue(forKey: job.id)
+        generatingSessionIDs.remove(job.id)
 
         if !cancelled, error == nil, job.turns.count == 1, !job.titleGenerated,
            let firstTurn = job.turns.first {

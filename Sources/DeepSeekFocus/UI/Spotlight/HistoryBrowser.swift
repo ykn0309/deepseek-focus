@@ -3,6 +3,7 @@ import SwiftUI
 struct HistoryBrowser: View {
     @ObservedObject var history: ConversationHistoryStore
     var currentSessionID: UUID?
+    var generatingSessionIDs: Set<UUID> = []
     var onNewConversation: () -> Void
     var onSelect: (ConversationSession) -> Void
     var onDelete: (ConversationSession) -> Void
@@ -126,6 +127,7 @@ struct HistoryBrowser: View {
                             HistorySessionRow(
                                 session: session,
                                 isCurrent: session.id == currentSessionID,
+                                isGenerating: generatingSessionIDs.contains(session.id),
                                 action: { onSelect(session) },
                                 onDelete: { onDelete(session) },
                                 onRename: { title in onRename(session, title) }
@@ -179,6 +181,7 @@ private struct HistorySection: Identifiable {
 private struct HistorySessionRow: View {
     let session: ConversationSession
     let isCurrent: Bool
+    let isGenerating: Bool
     let action: () -> Void
     let onDelete: () -> Void
     let onRename: (String) -> Void
@@ -210,6 +213,17 @@ private struct HistorySessionRow: View {
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
+
+                    if isGenerating {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .controlSize(.mini)
+                            .scaleEffect(0.72)
+                            .tint(FocusTheme.accent)
+                            .frame(width: 16, height: 16)
+                            .help("正在生成")
+                            .accessibilityLabel("正在生成")
+                    }
 
                     // Reserve the trailing space so the title doesn't jump
                     // when the ellipsis appears.

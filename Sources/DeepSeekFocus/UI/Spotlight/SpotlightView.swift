@@ -183,6 +183,7 @@ private struct ConversationSurface: View {
             HistoryBrowser(
                 history: model.historyStore,
                 currentSessionID: model.currentSessionID,
+                generatingSessionIDs: model.generatingSessionIDs,
                 onNewConversation: {
                     model.newConversation()
                 },
