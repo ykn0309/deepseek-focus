@@ -145,10 +145,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         alert.alertStyle = .informational
         alert.messageText = L10n.string("需要辅助功能权限")
         alert.informativeText = L10n.string("为了读取其他应用中的选中文字，请在系统设置中允许 DeepSeek Focus 使用辅助功能。允许后再次按快捷键即可；如仍无效，请重启 DeepSeek Focus。")
-        alert.addButton(withTitle: L10n.string("打开系统设置"))
+        alert.addButton(withTitle: L10n.string("重新授权"))
         alert.addButton(withTitle: L10n.string("取消"))
         NSApp.activate(ignoringOtherApps: true)
         if alert.runModal() == .alertFirstButtonReturn {
+            SelectionAccess.resetPermission()
             SelectionAccess.request()
             SelectionAccess.openSettings()
         }

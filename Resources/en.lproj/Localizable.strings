@@ -81,6 +81,7 @@
 "已获得辅助功能权限" = "Accessibility access granted";
 "已连接" = "Connected";
 "已连接 DeepSeek，可随时开始对话。" = "Connected to DeepSeek. Ready when you are.";
+"已重置辅助功能授权" = "Accessibility authorization reset";
 "帮我写段代码" = "Write some code";
 "应用所在目录不可写，无法自动安装。" = "The app's folder is not writable; automatic installation is unavailable.";
 "开启新对话" = "New Chat";
@@ -213,6 +214,7 @@
 "设置（⌘,）" = "Settings (⌘,)";
 "试试其他关键词。" = "Try another keyword.";
 "请先填写 DeepSeek API Key。" = "Enter your DeepSeek API key first.";
+"请在系统设置中重新开启 DeepSeek Focus 的辅助功能权限，然后重启应用。" = "Enable Accessibility for DeepSeek Focus again in System Settings, then restart the app.";
 "请把应用放在 /Applications 后再自动更新。" = "Move the app to /Applications before using automatic updates.";
 "请按下新的快捷键…" = "Press a new shortcut…";
 "请求内容过大。" = "The request is too large.";
@@ -244,6 +246,7 @@
 "重做" = "Redo";
 "重命名" = "Rename";
 "重命名会话" = "Rename chat";
+"重新授权" = "Re-authorize";
 "重新获取模型列表" = "Refresh model list";
 "问 DeepSeek" = "Ask DeepSeek";
 "问点什么，或者从下面开始。" = "Ask anything, or start with one of these.";

@@ -398,13 +398,19 @@ struct SettingsView: View {
                     .font(.system(size: 10))
                 Spacer()
                 if !selectionAccessTrusted {
-                    Button("打开系统设置") {
-                        SelectionAccess.request()
-                        SelectionAccess.openSettings()
+                    Button("重新授权") {
+                        repairSelectionAccess()
                     }
                     .buttonStyle(.plain)
                     .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(FocusTheme.accent)
+
+                    Button("打开系统设置") {
+                        SelectionAccess.openSettings()
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
                 }
             }
             .foregroundStyle(selectionAccessTrusted ? Color.secondary.opacity(0.65) : FocusTheme.warning)
@@ -690,6 +696,17 @@ struct SettingsView: View {
             return "\(value / 1_000)K tokens"
         }
         return "\(value) tokens"
+    }
+
+    private func repairSelectionAccess() {
+        SelectionAccess.resetPermission()
+        let alert = NSAlert()
+        alert.messageText = L10n.string("已重置辅助功能授权")
+        alert.informativeText = L10n.string("请在系统设置中重新开启 DeepSeek Focus 的辅助功能权限，然后重启应用。")
+        alert.addButton(withTitle: L10n.string("好"))
+        alert.runModal()
+        SelectionAccess.request()
+        SelectionAccess.openSettings()
     }
 
     private var appVersion: String {
