@@ -217,10 +217,10 @@ private struct HistorySessionRow: View {
                     if isGenerating {
                         ProgressView()
                             .progressViewStyle(.circular)
-                            .controlSize(.mini)
-                            .scaleEffect(0.72)
+                            .controlSize(.small)
+                            .scaleEffect(1.1)
                             .tint(FocusTheme.accent)
-                            .frame(width: 16, height: 16)
+                            .frame(width: 20, height: 20)
                             .help("正在生成")
                             .accessibilityLabel("正在生成")
                     }

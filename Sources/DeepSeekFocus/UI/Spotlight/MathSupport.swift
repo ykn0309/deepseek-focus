@@ -166,10 +166,11 @@ final class MathRenderCache {
     ) -> Rendered? {
         let color = resolved(textColor, isDark: isDark)
         let colorKey = color.description
-        let key = "\(display ? "D" : "I")|\(fontSize)|\(colorKey)|\(latex)"
+        let normalizedLatex = normalize(latex)
+        let key = "\(display ? "D" : "I")|\(fontSize)|\(colorKey)|\(normalizedLatex)"
         if let cached = cache[key] { return cached }
 
-        let hasCJK = latex.unicodeScalars.contains { scalar in
+        let hasCJK = normalizedLatex.unicodeScalars.contains { scalar in
             switch scalar.value {
             case 0x3400...0x9FFF, 0xF900...0xFAFF:
                 return true
@@ -187,7 +188,7 @@ final class MathRenderCache {
             let font = MTFontManager.manager.font(withName: "latinmodern-math", size: fontSize)
             font?.fallbackFont = CTFontCreateWithName("PingFang SC" as CFString, fontSize, nil)
             let imageRenderer = MTMathImage(
-                latex: spacedCJKText(in: latex),
+                latex: spacedCJKText(in: normalizedLatex),
                 fontSize: fontSize,
                 textColor: color,
                 labelMode: display ? .display : .text,
@@ -203,7 +204,7 @@ final class MathRenderCache {
             }
         } else {
             var renderer = MathImage(
-                latex: latex,
+                latex: normalizedLatex,
                 fontSize: fontSize,
                 textColor: color,
                 labelMode: display ? .display : .text,
@@ -221,6 +222,25 @@ final class MathRenderCache {
         if cache.count > 200 { cache.removeAll(keepingCapacity: true) }
         cache[key] = rendered
         return rendered
+    }
+
+    /// SwiftMath does not understand every LaTeX alias. Normalize the common
+    /// ones before parsing so a single unsupported command does not drop the
+    /// whole formula into the raw-text fallback.
+    private func normalize(_ latex: String) -> String {
+        var value = latex
+        let replacements: [(String, String)] = [
+            ("\\dotsb", "\\cdots"),
+            ("\\dotsc", "\\ldots"),
+            ("\\dotsi", "\\cdots"),
+            ("\\dotsm", "\\cdots"),
+            ("\\dotso", "\\ldots"),
+            ("\\dots", "\\ldots")
+        ]
+        for (from, to) in replacements {
+            value = value.replacingOccurrences(of: from, with: to)
+        }
+        return value
     }
 
     private func spacedCJKText(in latex: String) -> String {
