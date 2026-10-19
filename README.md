@@ -36,6 +36,10 @@ The build is ad-hoc signed and not notarized. If macOS blocks it on first launch
 - **Chinese and English UI**: follows the system language by default. The model prompt follows the UI language, while replies still match the language of your question. Each chat keeps the language it was created in; changing the UI later only affects new chats.
 - **In-app updates**: checks GitHub Releases, downloads and verifies the new build, installs it, and restarts. No manual download required.
 
+## Versioning
+
+Starting with **v1.9**, public releases use two-part versions such as `v1.9` and `v1.10`. Build numbers are internal and only shown in About. Older `v1.8.x` releases keep their original numbers and are not renamed.
+
 ## Requirements
 
 - macOS 13 Ventura or later
@@ -54,6 +58,8 @@ The build is ad-hoc signed and not notarized. If macOS blocks it on first launch
 | Action | Shortcut |
 | --- | --- |
 | Open / close panel | `⌥ Space` (configurable) |
+| Expand to full chat | `⌘ ↩` (configurable) |
+| Show / hide sidebar | `⌘ \` (configurable) |
 | Send | `Return` |
 | New line | `Shift + Return` |
 | New chat | `⌘ N` |

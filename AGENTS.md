@@ -7,11 +7,19 @@
 - Never create a new git tag, GitHub Release, DMG, or update ZIP on your own initiative.
 - Do not bump `CFBundleShortVersionString` or `CFBundleVersion` for ordinary changes.
 - Only when the user says “发布”, “发版”, “release”, or equivalent:
-  1. bump the version and build number;
+  1. bump the marketing version and `CFBundleVersion`;
   2. run the full build and `CoreChecks`;
   3. build the app and DMG;
   4. commit, tag, and publish the GitHub Release with DMG, ZIP, and SHA-256 assets.
 - The local `/Applications/DeepSeek Focus.app` must not be replaced during normal development or update testing unless the user explicitly asks to install.
+
+## Versioning
+
+- From v1.9 onward, public releases use two-component marketing versions: `1.9`, `1.10`, `1.11`.
+- Increase `CFBundleVersion` for builds; the build number is internal and only shown in About.
+- The Settings update section shows only the marketing version, without the build number.
+- Do not rewrite already-published tags, releases, asset filenames, checksums, or bundles. Historical v1.8.x releases keep their original numbers.
+- Only use a third component (for example `1.9.1`) for a critical hotfix when a new minor release is not appropriate.
 
 ## Local test installs
 
