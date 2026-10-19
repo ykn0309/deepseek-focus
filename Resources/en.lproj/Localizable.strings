@@ -28,6 +28,7 @@
 "代码" = "Code";
 "你的对话只在需要时发送给 DeepSeek，不会经过任何第三方中转。应用不包含账号系统、遥测或分析 SDK。" = "Your conversations are sent to DeepSeek only when needed, with no third-party relay. The app has no accounts, telemetry, or analytics SDKs.";
 "使用内置的模型信息" = "Using built-in model information";
+"侧边栏快捷键" = "Sidebar shortcut";
 "保存" = "Save";
 "修改 API Key 后请点击“验证并同步”。" = "After changing the API key, click Verify & Sync.";
 "停止生成" = "Stop generating";
@@ -57,6 +58,7 @@
 "可以从 GitHub Releases 下载新版本。" = "You can download the new version from GitHub Releases.";
 "唤起与应用" = "Activation & App";
 "唤起快捷键：%@" = "Shortcut: %@";
+"在展开页中显示或隐藏历史侧边栏。" = "Show or hide the history sidebar in the expanded view.";
 "在菜单栏显示图标" = "Show icon in menu bar";
 "填入输入框" = "Fill the composer";
 "复制" = "Copy";
@@ -173,6 +175,7 @@
 "没有找到匹配的会话" = "No matching chats";
 "流式数据格式不正确" = "Invalid streaming data format";
 "清除搜索" = "Clear search";
+"点击「录制」设置侧边栏快捷键，仅在展开页中生效。" = "Click Record to set the sidebar shortcut. It only applies to the expanded view.";
 "点击「录制」设置全局快捷键。建议使用未与系统冲突的组合。" = "Click Record to set the global shortcut. Prefer a combination that does not conflict with the system.";
 "由 DeepSeek 提供" = "Provided by DeepSeek";
 "由 DeepSeek 模型决定思考深度。" = "Reasoning depth is determined by the DeepSeek model.";
@@ -214,6 +217,8 @@
 "返回" = "Back";
 "还没有历史会话" = "No history yet";
 "还没有配置 DeepSeek API Key。请在设置中填写后再试。" = "No DeepSeek API key is configured. Add one in Settings and try again.";
+"这个快捷键已被侧边栏切换占用，请换一个。" = "This shortcut is already used for the sidebar. Choose another.";
+"这个快捷键已被全局唤起占用，请换一个。" = "This shortcut is already used by the global launcher. Choose another.";
 "这个快捷键无效，请至少使用一个修饰键（⌘、⌥ 或 ⌃），或选择功能键。" = "Invalid shortcut. Use at least one modifier (⌘, ⌥, or ⌃), or choose a function key.";
 "这个快捷键无效，请至少使用一个修饰键（⌘、⌥、⌃），或选择功能键。" = "Invalid shortcut. Use at least one modifier (⌘, ⌥, or ⌃), or choose a function key.";
 "连接 DeepSeek" = "Connect to DeepSeek";

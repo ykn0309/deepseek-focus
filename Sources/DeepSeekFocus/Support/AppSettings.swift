@@ -64,6 +64,7 @@ final class AppSettings: ObservableObject {
         static let reasoning = "deepseek.reasoningEffort"
         static let searchMode = "deepseek.webSearchMode"
         static let shortcut = "deepseek.shortcut"
+        static let sidebarShortcut = "deepseek.sidebarShortcut"
         static let hasLaunched = "deepseek.hasLaunched"
         static let lastLaunchedVersion = "deepseek.lastLaunchedVersion"
         static let appLanguage = "deepseek.appLanguage"
@@ -103,6 +104,14 @@ final class AppSettings: ObservableObject {
         }
     }
     @Published var shortcutError: String?
+    @Published private(set) var sidebarShortcut: AppShortcut {
+        didSet {
+            if let data = try? JSONEncoder().encode(sidebarShortcut) {
+                defaults.set(data, forKey: Key.sidebarShortcut)
+            }
+        }
+    }
+    @Published var sidebarShortcutError: String?
     @Published var credentialError: String?
     @Published private(set) var launchAtLogin = false
     @Published var launchAtLoginError: String?
@@ -159,6 +168,12 @@ final class AppSettings: ObservableObject {
         } else {
             self.shortcut = .default
         }
+        if let data = defaults.data(forKey: Key.sidebarShortcut),
+           let decoded = try? JSONDecoder().decode(AppShortcut.self, from: data) {
+            self.sidebarShortcut = decoded
+        } else {
+            self.sidebarShortcut = .sidebarDefault
+        }
         self.credentialError = initialCredentialError
 
         refreshLaunchAtLoginState()
@@ -206,6 +221,10 @@ final class AppSettings: ObservableObject {
 
     @discardableResult
     func applyShortcut(_ newShortcut: AppShortcut) -> Bool {
+        guard newShortcut != sidebarShortcut else {
+            shortcutError = L10n.string("这个快捷键已被侧边栏切换占用，请换一个。")
+            return false
+        }
         guard let hotKeyRegistrationHandler else {
             shortcutError = L10n.string("快捷键服务尚未就绪。")
             return false
@@ -221,6 +240,26 @@ final class AppSettings: ObservableObject {
 
     func reportShortcutError(_ message: String) {
         shortcutError = message
+    }
+
+    @discardableResult
+    func applySidebarShortcut(_ newShortcut: AppShortcut) -> Bool {
+        guard newShortcut.isValid else {
+            sidebarShortcutError = L10n.string("这个快捷键无效，请至少使用一个修饰键（⌘、⌥、⌃），或选择功能键。")
+            return false
+        }
+        guard newShortcut != shortcut else {
+            sidebarShortcutError = L10n.string("这个快捷键已被全局唤起占用，请换一个。")
+            return false
+        }
+        sidebarShortcut = newShortcut
+        sidebarShortcutError = nil
+        return true
+    }
+
+    func resetSidebarShortcut() {
+        sidebarShortcut = .sidebarDefault
+        sidebarShortcutError = nil
     }
 
     // MARK: - Launch at login

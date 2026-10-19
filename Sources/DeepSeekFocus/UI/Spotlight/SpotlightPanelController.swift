@@ -271,7 +271,7 @@ final class SpotlightPanelController {
             if !composing,
                model.isConversation,
                !model.isShowingSettings,
-               event.charactersIgnoringModifiers == "\\" {
+               settings.sidebarShortcut.matches(event: event) {
                 model.toggleHistory()
                 return nil
             }

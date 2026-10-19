@@ -12,6 +12,12 @@ struct AppShortcut: Codable, Equatable {
         label: "⌥Space"
     )
 
+    static let sidebarDefault = AppShortcut(
+        keyCode: UInt32(kVK_ANSI_Backslash),
+        modifiers: UInt32(cmdKey),
+        label: "⌘\\"
+    )
+
     var displayString: String {
         label.isEmpty ? Self.display(keyCode: keyCode, modifiers: modifiers) : label
     }
@@ -23,13 +29,7 @@ struct AppShortcut: Codable, Equatable {
     var carbonModifiers: UInt32 { modifiers }
 
     static func from(event: NSEvent) -> AppShortcut? {
-        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-        var carbon: UInt32 = 0
-        if flags.contains(.control) { carbon |= UInt32(controlKey) }
-        if flags.contains(.option) { carbon |= UInt32(optionKey) }
-        if flags.contains(.shift) { carbon |= UInt32(shiftKey) }
-        if flags.contains(.command) { carbon |= UInt32(cmdKey) }
-
+        let carbon = carbonModifiers(from: event)
         let keyCode = UInt32(event.keyCode)
         let candidate = AppShortcut(
             keyCode: keyCode,
@@ -37,6 +37,20 @@ struct AppShortcut: Codable, Equatable {
             label: display(keyCode: keyCode, modifiers: carbon, characters: event.charactersIgnoringModifiers)
         )
         return candidate.isValid ? candidate : nil
+    }
+
+    func matches(event: NSEvent) -> Bool {
+        UInt32(event.keyCode) == keyCode && Self.carbonModifiers(from: event) == modifiers
+    }
+
+    private static func carbonModifiers(from event: NSEvent) -> UInt32 {
+        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        var carbon: UInt32 = 0
+        if flags.contains(.control) { carbon |= UInt32(controlKey) }
+        if flags.contains(.option) { carbon |= UInt32(optionKey) }
+        if flags.contains(.shift) { carbon |= UInt32(shiftKey) }
+        if flags.contains(.command) { carbon |= UInt32(cmdKey) }
+        return carbon
     }
 
     static func display(

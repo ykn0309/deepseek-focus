@@ -381,6 +381,10 @@ struct SettingsView: View {
 
             Divider()
 
+            SidebarShortcutRecorderView(settings: settings)
+
+            Divider()
+
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("界面语言")

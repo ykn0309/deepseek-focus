@@ -91,6 +91,11 @@ T = {
 "点击「录制」设置全局快捷键。建议使用未与系统冲突的组合。": "Click Record to set the global shortcut. Prefer a combination that does not conflict with the system.",
 "这个快捷键无效，请至少使用一个修饰键（⌘、⌥ 或 ⌃），或选择功能键。": "Invalid shortcut. Use at least one modifier (⌘, ⌥, or ⌃), or choose a function key.",
 "这个快捷键无效，请至少使用一个修饰键（⌘、⌥、⌃），或选择功能键。": "Invalid shortcut. Use at least one modifier (⌘, ⌥, or ⌃), or choose a function key.",
+"侧边栏快捷键": "Sidebar shortcut",
+"在展开页中显示或隐藏历史侧边栏。": "Show or hide the history sidebar in the expanded view.",
+"点击「录制」设置侧边栏快捷键，仅在展开页中生效。": "Click Record to set the sidebar shortcut. It only applies to the expanded view.",
+"这个快捷键已被全局唤起占用，请换一个。": "This shortcut is already used by the global launcher. Choose another.",
+"这个快捷键已被侧边栏切换占用，请换一个。": "This shortcut is already used for the sidebar. Choose another.",
 "无法注册 %@。它可能已被其他应用或系统占用（%ld）。": "Unable to register %@. It may be in use by another app or the system (%ld).",
 
 # History

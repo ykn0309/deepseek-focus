@@ -27,6 +27,7 @@ struct SpotlightRootView: View {
             } else if model.isConversation {
                 ConversationSurface(
                     model: model,
+                    settings: settings,
                     modelCatalog: modelCatalog
                 )
                 .id(settings.resolvedLanguageCode)
@@ -150,6 +151,7 @@ private struct SearchSurface: View {
 
 private struct ConversationSurface: View {
     @ObservedObject var model: SpotlightViewModel
+    @ObservedObject var settings: AppSettings
     @ObservedObject var modelCatalog: ModelCatalog
     @Environment(\.colorScheme) private var colorScheme
     @State private var composerHeight: CGFloat = 24
@@ -275,7 +277,9 @@ private struct ConversationSurface: View {
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .help(model.isHistoryPresented ? "关闭历史会话（⌘\\）" : "历史会话（⌘\\）")
+        .help(model.isHistoryPresented
+              ? "\(L10n.string("关闭历史会话"))（\(settings.sidebarShortcut.displayString)）"
+              : "\(L10n.string("历史会话"))（\(settings.sidebarShortcut.displayString)）")
         .accessibilityLabel("历史会话")
     }
 
