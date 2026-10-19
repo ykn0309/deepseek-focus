@@ -2,50 +2,63 @@ import AppKit
 import SwiftUI
 import DeepSeekFocusCore
 
-struct ShortcutRecorderView: View {
-    @ObservedObject var settings: AppSettings
+struct ShortcutSettingRow: View {
+    let icon: String
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
+    let shortcut: AppShortcut
+    let error: String?
+    let onApply: (AppShortcut) -> Bool
+    let onReset: () -> Void
+
     @State private var isRecording = false
     @State private var monitor: Any?
-    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 9) {
             HStack(spacing: 12) {
                 HStack(spacing: 9) {
-                    Image(systemName: "keyboard")
+                    Image(systemName: icon)
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.secondary)
+                        .frame(width: 16)
 
-                    Text(isRecording ? L10n.string("请按下新的快捷键…") : settings.shortcut.displayString)
-                        .font(.system(size: 12.5, weight: .medium, design: .rounded))
-                        .foregroundStyle(isRecording ? FocusTheme.accent : .primary.opacity(0.86))
-                        .padding(.horizontal, 11)
-                        .padding(.vertical, 6)
-                        .frame(minWidth: 100, alignment: .center)
-                        .background {
-                            RoundedRectangle(cornerRadius: 7, style: .continuous)
-                                .fill(Color.primary.opacity(isRecording ? 0.035 : 0.055))
-                                .overlay {
-                                    RoundedRectangle(cornerRadius: 7, style: .continuous)
-                                        .strokeBorder(
-                                            isRecording ? FocusTheme.accent.opacity(0.45) : Color.primary.opacity(0.09),
-                                            lineWidth: isRecording ? 1.2 : 0.7
-                                        )
-                                }
-                        }
-
-                    if isRecording {
-                        ThinkingDots()
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(title)
+                            .font(.system(size: 11.5, weight: .medium))
+                        Text(subtitle)
+                            .font(.system(size: 10))
+                            .foregroundStyle(.tertiary)
                     }
                 }
 
-                Spacer()
+                Spacer(minLength: 8)
 
-                Button("恢复默认") {
-                    stopRecording()
-                    if !settings.applyShortcut(.default) {
-                        NSSound.beep()
+                Text(isRecording ? L10n.string("请按下新的快捷键…") : shortcut.displayString)
+                    .font(.system(size: 12.5, weight: .medium, design: .rounded))
+                    .foregroundStyle(isRecording ? FocusTheme.accent : .primary.opacity(0.86))
+                    .padding(.horizontal, 11)
+                    .padding(.vertical, 6)
+                    .frame(minWidth: 100, alignment: .center)
+                    .background {
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .fill(Color.primary.opacity(isRecording ? 0.035 : 0.055))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                    .strokeBorder(
+                                        isRecording ? FocusTheme.accent.opacity(0.45) : Color.primary.opacity(0.09),
+                                        lineWidth: isRecording ? 1.2 : 0.7
+                                    )
+                            }
                     }
+
+                if isRecording {
+                    ThinkingDots()
+                }
+
+                Button(L10n.string("恢复默认")) {
+                    stopRecording()
+                    onReset()
                 }
                 .buttonStyle(.plain)
                 .font(.system(size: 10.5))
@@ -66,11 +79,11 @@ struct ShortcutRecorderView: View {
 
             Text(isRecording
                  ? L10n.string("按下带有 ⌘、⌥ 或 ⌃ 的组合键，按 Esc 取消。")
-                 : L10n.string("点击「录制」设置全局快捷键。建议使用未与系统冲突的组合。"))
+                 : L10n.string("点击「录制」设置快捷键，建议使用未与系统冲突的组合。"))
                 .font(.system(size: 10.5))
                 .foregroundStyle(.tertiary)
 
-            if let error = settings.shortcutError {
+            if let error {
                 Label(error, systemImage: "exclamationmark.triangle")
                     .font(.system(size: 10.5))
                     .foregroundStyle(FocusTheme.warning)
@@ -95,7 +108,9 @@ struct ShortcutRecorderView: View {
                 NSSound.beep()
                 return nil
             }
-            _ = settings.applyShortcut(shortcut)
+            if !onApply(shortcut) {
+                NSSound.beep()
+            }
             stopRecording()
             return nil
         }

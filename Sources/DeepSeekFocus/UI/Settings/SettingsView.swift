@@ -377,11 +377,39 @@ struct SettingsView: View {
             subtitle: nil,
             icon: "command"
         ) {
-            ShortcutRecorderView(settings: settings)
+            ShortcutSettingRow(
+                icon: "keyboard",
+                title: "全局唤起",
+                subtitle: "在任何应用中唤出 DeepSeek Focus",
+                shortcut: settings.shortcut,
+                error: settings.shortcutError,
+                onApply: { settings.applyShortcut($0) },
+                onReset: { _ = settings.applyShortcut(.default) }
+            )
 
             Divider()
 
-            SidebarShortcutRecorderView(settings: settings)
+            ShortcutSettingRow(
+                icon: "rectangle.expand.vertical",
+                title: "展开快捷键",
+                subtitle: "从初始输入框进入展开后的对话页",
+                shortcut: settings.expandShortcut,
+                error: settings.expandShortcutError,
+                onApply: { settings.applyExpandShortcut($0) },
+                onReset: { settings.resetExpandShortcut() }
+            )
+
+            Divider()
+
+            ShortcutSettingRow(
+                icon: "sidebar.left",
+                title: "侧边栏快捷键",
+                subtitle: "在展开页中显示或隐藏历史侧边栏",
+                shortcut: settings.sidebarShortcut,
+                error: settings.sidebarShortcutError,
+                onApply: { settings.applySidebarShortcut($0) },
+                onReset: { settings.resetSidebarShortcut() }
+            )
 
             Divider()
 

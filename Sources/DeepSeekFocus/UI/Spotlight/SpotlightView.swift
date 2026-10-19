@@ -38,7 +38,7 @@ struct SpotlightRootView: View {
                     )
                 )
             } else {
-                SearchSurface(model: model, modelCatalog: modelCatalog)
+                SearchSurface(model: model, settings: settings, modelCatalog: modelCatalog)
                     .id(settings.resolvedLanguageCode)
                     .transition(.opacity.combined(with: .scale(scale: 0.99)))
             }
@@ -58,6 +58,7 @@ struct SpotlightRootView: View {
 
 private struct SearchSurface: View {
     @ObservedObject var model: SpotlightViewModel
+    @ObservedObject var settings: AppSettings
     @ObservedObject var modelCatalog: ModelCatalog
     @FocusState private var fieldFocused: Bool
 
@@ -76,8 +77,8 @@ private struct SearchSurface: View {
             .foregroundStyle(.primary.opacity(0.92))
             .focused($fieldFocused)
             .onSubmit { model.submit() }
-            .help("按 ⌘↩ 展开对话")
-            .accessibilityHint("按 Command-Return 展开对话")
+            .help(L10n.format("按 %@ 展开对话", settings.expandShortcut.displayString))
+            .accessibilityHint(L10n.format("按 %@ 展开对话", settings.expandShortcut.displayString))
             .layoutPriority(1)
 
             QuickModelControls(

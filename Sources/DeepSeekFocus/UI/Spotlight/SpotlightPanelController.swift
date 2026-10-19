@@ -264,7 +264,7 @@ final class SpotlightPanelController {
         }
 
         if flags.contains(.command), !flags.contains(.option), !flags.contains(.control) {
-            if !composing, !model.isConversation, event.keyCode == 36 {
+            if !composing, !model.isConversation, settings.expandShortcut.matches(event: event) {
                 model.expandToConversation()
                 return nil
             }

@@ -24,6 +24,7 @@
 "今天" = "Today";
 "从 GitHub Releases 检查并安装最新版本。" = "Check GitHub Releases for the latest version and install it here.";
 "从 GitHub Releases 检查最新版本。" = "Check GitHub Releases for the latest version.";
+"从初始输入框进入展开后的对话页" = "Open the expanded chat from the initial input";
 "从源码运行时无法注册登录项，请先打包为 .app。" = "Launch at Login cannot be registered when running from source. Build a .app first.";
 "代码" = "Code";
 "你的对话只在需要时发送给 DeepSeek，不会经过任何第三方中转。应用不包含账号系统、遥测或分析 SDK。" = "Your conversations are sent to DeepSeek only when needed, with no third-party relay. The app has no accounts, telemetry, or analytics SDKs.";
@@ -33,6 +34,7 @@
 "修改 API Key 后请点击“验证并同步”。" = "After changing the API key, click Verify & Sync.";
 "停止生成" = "Stop generating";
 "像聚焦搜索一样，随时向 DeepSeek 提问。\n\nAPI Key 仅保存在本机应用数据文件中，对话直接发送给 DeepSeek。" = "Ask DeepSeek anytime, just like Spotlight.\n\nYour API key is stored only in local app data, and conversations go directly to DeepSeek.";
+"全局唤起" = "Global launcher";
 "全选" = "Select All";
 "关于 DeepSeek 聚焦" = "About DeepSeek Focus";
 "关闭" = "Off";
@@ -58,6 +60,7 @@
 "可以从 GitHub Releases 下载新版本。" = "You can download the new version from GitHub Releases.";
 "唤起与应用" = "Activation & App";
 "唤起快捷键：%@" = "Shortcut: %@";
+"在任何应用中唤出 DeepSeek Focus" = "Open DeepSeek Focus from any app";
 "在展开页中显示或隐藏历史侧边栏。" = "Show or hide the history sidebar in the expanded view.";
 "在菜单栏显示图标" = "Show icon in menu bar";
 "填入输入框" = "Fill the composer";
@@ -68,6 +71,7 @@
 "对话" = "Conversation";
 "尚未发布可用的 Release。" = "No published release is available yet.";
 "尚未配置 API Key。" = "No API key configured.";
+"展开快捷键" = "Expand shortcut";
 "已停止生成" = "Generation stopped";
 "已停止生成。" = "Generation stopped.";
 "已同步 %ld 个模型 · %@" = "Synced %ld models · %@";
@@ -97,6 +101,7 @@
 "打开搜索" = "Open Search";
 "打开设置" = "Open Settings";
 "找不到 DeepSeek API 接口，请稍后重试。" = "DeepSeek API endpoint not found. Try again later.";
+"按 %@ 展开对话" = "Press %@ to expand";
 "按下带有 ⌘、⌥ 或 ⌃ 的组合键，按 Esc 取消。" = "Press a combination with ⌘, ⌥, or ⌃. Press Esc to cancel.";
 "推理等级" = "Reasoning";
 "搜索「%@」失败：%@" = "Search failed for “%@”: %@";
@@ -177,6 +182,7 @@
 "清除搜索" = "Clear search";
 "点击「录制」设置侧边栏快捷键，仅在展开页中生效。" = "Click Record to set the sidebar shortcut. It only applies to the expanded view.";
 "点击「录制」设置全局快捷键。建议使用未与系统冲突的组合。" = "Click Record to set the global shortcut. Prefer a combination that does not conflict with the system.";
+"点击「录制」设置快捷键，建议使用未与系统冲突的组合。" = "Click Record to set a shortcut. Prefer a combination that does not conflict with macOS.";
 "由 DeepSeek 提供" = "Provided by DeepSeek";
 "由 DeepSeek 模型决定思考深度。" = "Reasoning depth is determined by the DeepSeek model.";
 "由模型判断是否需要搜索。新闻、实时数据等时效性问题会先调用 DeepSeek 搜索 API。" = "The model decides when to search. Time-sensitive questions such as news and live data use the DeepSeek Search API first.";
@@ -219,6 +225,7 @@
 "还没有配置 DeepSeek API Key。请在设置中填写后再试。" = "No DeepSeek API key is configured. Add one in Settings and try again.";
 "这个快捷键已被侧边栏切换占用，请换一个。" = "This shortcut is already used for the sidebar. Choose another.";
 "这个快捷键已被全局唤起占用，请换一个。" = "This shortcut is already used by the global launcher. Choose another.";
+"这个快捷键已被展开快捷键占用，请换一个。" = "This shortcut is already used for expanding the panel. Choose another.";
 "这个快捷键无效，请至少使用一个修饰键（⌘、⌥ 或 ⌃），或选择功能键。" = "Invalid shortcut. Use at least one modifier (⌘, ⌥, or ⌃), or choose a function key.";
 "这个快捷键无效，请至少使用一个修饰键（⌘、⌥、⌃），或选择功能键。" = "Invalid shortcut. Use at least one modifier (⌘, ⌥, or ⌃), or choose a function key.";
 "连接 DeepSeek" = "Connect to DeepSeek";

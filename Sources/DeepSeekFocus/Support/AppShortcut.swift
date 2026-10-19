@@ -12,6 +12,12 @@ struct AppShortcut: Codable, Equatable {
         label: "⌥Space"
     )
 
+    static let expandDefault = AppShortcut(
+        keyCode: UInt32(kVK_Return),
+        modifiers: UInt32(cmdKey),
+        label: "⌘↩"
+    )
+
     static let sidebarDefault = AppShortcut(
         keyCode: UInt32(kVK_ANSI_Backslash),
         modifiers: UInt32(cmdKey),
