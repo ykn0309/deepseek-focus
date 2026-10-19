@@ -268,6 +268,13 @@ final class SpotlightPanelController {
                 model.expandToConversation()
                 return nil
             }
+            if !composing,
+               model.isConversation,
+               !model.isShowingSettings,
+               event.charactersIgnoringModifiers == "\\" {
+                model.toggleHistory()
+                return nil
+            }
             if event.charactersIgnoringModifiers?.lowercased() == "n" {
                 if settings.hasAPIKey {
                     model.newConversation()

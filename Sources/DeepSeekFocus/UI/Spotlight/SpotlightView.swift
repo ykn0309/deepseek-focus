@@ -275,7 +275,7 @@ private struct ConversationSurface: View {
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .help(model.isHistoryPresented ? "关闭历史会话" : "历史会话")
+        .help(model.isHistoryPresented ? "关闭历史会话（⌘\\）" : "历史会话（⌘\\）")
         .accessibilityLabel("历史会话")
     }
 
