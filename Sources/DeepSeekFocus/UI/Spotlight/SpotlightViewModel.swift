@@ -299,7 +299,7 @@ final class SpotlightViewModel: ObservableObject {
     func expandToConversation() {
         guard !isConversation, !isShowingSettings else { return }
         isConversation = true
-        isHistoryPresented = false
+        isHistoryPresented = true
         onRequestExpand?()
         focusToken &+= 1
         requestScroll(force: true)
