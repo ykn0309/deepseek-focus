@@ -10,6 +10,7 @@ public struct ChatAgentConfiguration: Sendable {
     public var now: Date
     public var timeZone: TimeZone
     public var maxSearchCount: Int
+    public var session: URLSession?
 
     public init(
         apiKey: String,
@@ -20,7 +21,8 @@ public struct ChatAgentConfiguration: Sendable {
         languageCode: String = "zh-Hans",
         now: Date = Date(),
         timeZone: TimeZone = .current,
-        maxSearchCount: Int = 4
+        maxSearchCount: Int = 4,
+        session: URLSession? = nil
     ) {
         self.apiKey = apiKey
         self.baseURL = baseURL
@@ -31,6 +33,7 @@ public struct ChatAgentConfiguration: Sendable {
         self.now = now
         self.timeZone = timeZone
         self.maxSearchCount = maxSearchCount
+        self.session = session
     }
 }
 
@@ -90,7 +93,7 @@ public final class ConversationEngine {
         configuration: ChatAgentConfiguration,
         continuation: AsyncThrowingStream<AgentEvent, Error>.Continuation
     ) async throws {
-        let client = DeepSeekClient(baseURL: configuration.baseURL)
+        let client = DeepSeekClient(baseURL: configuration.baseURL, session: configuration.session)
         var allowTools = configuration.webSearchEnabled
         var searchCount = 0
         var searchCache: [String: [SearchSource]] = [:]

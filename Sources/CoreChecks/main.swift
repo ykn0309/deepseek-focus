@@ -4,19 +4,22 @@ import DeepSeekFocusCore
 final class MockURLProtocol: URLProtocol {
     static var statusCode = 200
     static var payload = Data()
+    static var handler: ((URLRequest) -> (Int, Data, String))?
 
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
     override func startLoading() {
+        let (status, data, contentType) = Self.handler?(request)
+            ?? (Self.statusCode, Self.payload, "text/event-stream")
         let response = HTTPURLResponse(
             url: request.url ?? URL(string: "https://mock.local")!,
-            statusCode: Self.statusCode,
+            statusCode: status,
             httpVersion: "HTTP/1.1",
-            headerFields: ["Content-Type": "text/event-stream"]
+            headerFields: ["Content-Type": contentType]
         )!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        client?.urlProtocol(self, didLoad: Self.payload)
+        client?.urlProtocol(self, didLoad: data)
         client?.urlProtocolDidFinishLoading(self)
     }
 
@@ -25,9 +28,89 @@ final class MockURLProtocol: URLProtocol {
 
 @main
 struct CoreChecks {
+    private static func toolFlowEvents() -> ([String], Error?) {
+        MockURLProtocol.handler = { request in
+            let path = request.url?.path ?? ""
+            if path.hasSuffix("/tools/search") {
+                let body = """
+                {"results":[{"title":"Source","url":"https://example.com","snippet":"Snippet"}]}
+                """
+                return (200, Data(body.utf8), "application/json")
+            }
+            // The test makes one tool-call round and then one final-answer round.
+            let isToolRound = MockURLProtocol.payload.isEmpty
+            if isToolRound {
+                MockURLProtocol.payload = Data("used".utf8)
+                let body = #"""
+                data: {"id":"1","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_1","type":"function","function":{"name":"web_search","arguments":"{\"query\":\"test\"}"}}]},"finish_reason":null}]}
+
+                data: {"id":"1","choices":[{"index":0,"delta":{},"finish_reason":"tool_calls"}]}
+
+                data: [DONE]
+
+                """#
+
+                return (200, Data(body.utf8), "text/event-stream")
+            }
+            let body = """
+            data: {"id":"2","choices":[{"index":0,"delta":{"content":"Answer"},"finish_reason":null}]}
+
+            data: {"id":"2","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+
+            data: [DONE]
+
+            """
+            return (200, Data(body.utf8), "text/event-stream")
+        }
+
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [MockURLProtocol.self]
+        let session = URLSession(configuration: configuration)
+        let agentConfiguration = ChatAgentConfiguration(
+            apiKey: "test-key",
+            baseURL: URL(string: "https://mock.local")!,
+            model: "deepseek-flash",
+            reasoningEffort: "none",
+            webSearchEnabled: true,
+            session: session
+        )
+
+        var events: [String] = []
+        var failure: Error?
+        var finished = false
+        Task { @MainActor in
+            let engine = ConversationEngine()
+            do {
+                for try await event in engine.send(userText: "test question", configuration: agentConfiguration) {
+                    switch event {
+                    case .searchSucceeded(let query, let sources):
+                        events.append("search:\(query):\(sources.count)")
+                    case .contentDelta(let delta):
+                        events.append("content:\(delta)")
+                    case .completed(_, let reason):
+                        events.append("completed:\(reason ?? "nil")")
+                    default:
+                        break
+                    }
+                }
+            } catch {
+                failure = error
+            }
+            finished = true
+        }
+
+        let deadline = Date().addingTimeInterval(5)
+        while !finished && Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+        }
+        if !finished { failure = DeepSeekError.network("tool flow test timed out") }
+        return (events, failure)
+    }
+
     private static func streamEvents(payload: String) -> ([String], Error?) {
         MockURLProtocol.statusCode = 200
         MockURLProtocol.payload = Data(payload.utf8)
+        MockURLProtocol.handler = nil
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [MockURLProtocol.self]
         let session = URLSession(configuration: configuration)
@@ -106,6 +189,14 @@ struct CoreChecks {
         """
         let (_, incompleteError) = streamEvents(payload: incompleteSSE)
         check((incompleteError as? DeepSeekError) == .streamIncomplete, "missing [DONE] reports incomplete stream")
+
+        print("Tool calling round trip")
+        MockURLProtocol.payload = Data()
+        let (toolFlowEvents, toolFlowError) = toolFlowEvents()
+        check(toolFlowError == nil, "tool calling round trip completes")
+        check(toolFlowEvents.contains(where: { $0.hasPrefix("search:test:") }), "tool round executes search")
+        check(toolFlowEvents.contains("content:Answer"), "tool round produces final answer")
+        check(toolFlowEvents.contains(where: { $0.hasPrefix("completed:") }), "tool round completes")
 
         print("Tool call aggregation")
         var accumulator = ToolCallAccumulator()
