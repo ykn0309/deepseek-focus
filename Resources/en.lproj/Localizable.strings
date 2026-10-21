@@ -5,6 +5,7 @@
 "API Key 仅保存在这台 Mac 的应用数据目录中（文件权限 600，不使用系统钥匙串），并直接从本机发送给 DeepSeek。" = "The API key is stored only in this Mac's app data folder (file permissions 600, no system Keychain) and sent directly to DeepSeek from this Mac.";
 "API Key 无效或已过期，请在设置中检查。" = "Invalid or expired API key. Check it in Settings.";
 "API Key 验证成功，已同步 %ld 个模型。" = "API key verified. Synced %ld models.";
+"Chrome 兼容模式" = "Chrome compatibility mode";
 "DeepSeek API 地址无效。" = "Invalid DeepSeek API URL.";
 "DeepSeek 服务暂时不可用（HTTP %ld），请稍后重试。" = "DeepSeek is temporarily unavailable (HTTP %ld). Try again later.";
 "DeepSeek 聚焦" = "DeepSeek Focus";
@@ -66,6 +67,9 @@
 "启用选区快捷操作" = "Enable selection actions";
 "唤起与应用" = "Activation & App";
 "唤起快捷键：%@" = "Shortcut: %@";
+"回答提前结束（%@），可能不完整。" = "The answer ended early (%@) and may be incomplete.";
+"回答被内容安全策略截断。" = "The answer was cut off by the content safety policy.";
+"回答达到长度上限，可能不完整。" = "The answer reached the length limit and may be incomplete.";
 "在任何应用中唤出 DeepSeek Focus" = "Open DeepSeek Focus from any app";
 "在对话中继续" = "Continue in chat";
 "在展开页中显示或隐藏历史侧边栏。" = "Show or hide the history sidebar in the expanded view.";
@@ -161,6 +165,7 @@
 "最深入的推理，耗时和消耗最高。" = "Deepest reasoning; slowest and most token-intensive.";
 "有什么可以帮你的吗？" = "What can I help you with?";
 "服务" = "Services";
+"服务资源不足，回答可能不完整。" = "The service is low on resources; the answer may be incomplete.";
 "未命名会话" = "Untitled chat";
 "查看全部 %ld 个来源" = "Show all %ld sources";
 "查词" = "Look up";
@@ -177,6 +182,8 @@
 "模型" = "Model";
 "模型列表为空" = "The model list is empty";
 "模型列表格式不正确" = "Invalid model list format";
+"模型未能在本轮完成最终回答。" = "The model did not complete a final answer in this turn.";
+"模型没有返回最终回答。" = "The model did not return a final answer.";
 "正在下载…" = "Downloading…";
 "正在下载更新…" = "Downloading update…";
 "正在从 DeepSeek 获取模型列表…" = "Fetching the model list from DeepSeek…";
@@ -202,6 +209,7 @@
 "点击「录制」设置侧边栏快捷键，仅在展开页中生效。" = "Click Record to set the sidebar shortcut. It only applies to the expanded view.";
 "点击「录制」设置全局快捷键。建议使用未与系统冲突的组合。" = "Click Record to set the global shortcut. Prefer a combination that does not conflict with the system.";
 "点击「录制」设置快捷键，建议使用未与系统冲突的组合。" = "Click Record to set a shortcut. Prefer a combination that does not conflict with macOS.";
+"生成被中断，回答可能不完整。" = "Generation was interrupted; the answer may be incomplete.";
 "由 DeepSeek 提供" = "Provided by DeepSeek";
 "由 DeepSeek 模型决定思考深度。" = "Reasoning depth is determined by the DeepSeek model.";
 "由模型判断是否需要搜索。新闻、实时数据等时效性问题会先调用 DeepSeek 搜索 API。" = "The model decides when to search. Time-sensitive questions such as news and live data use the DeepSeek Search API first.";
@@ -256,12 +264,14 @@
 "这个快捷键无效，请至少使用一个修饰键（⌘、⌥、⌃），或选择功能键。" = "Invalid shortcut. Use at least one modifier (⌘, ⌥, or ⌃), or choose a function key.";
 "连接 DeepSeek" = "Connect to DeepSeek";
 "连接失败" = "Connection failed";
+"连接提前结束，回答可能不完整。" = "The stream ended before completion; the answer may be incomplete.";
 "退出" = "Quit";
 "退出 DeepSeek 聚焦" = "Quit DeepSeek Focus";
 "选中文字后按快捷键显示快捷栏；翻译和查词默认关闭思考，问 DeepSeek 默认开启联网搜索。" = "Press the shortcut after selecting text to show the quick action bar. Translation and Look up start with thinking off; Ask DeepSeek starts with web search on.";
 "选中文字后显示查询与翻译菜单" = "Show query and translate choices for selected text";
 "选区快捷操作" = "Selection actions";
 "选区翻译统一输出为该语言。" = "Selection translations always use this language.";
+"通过临时复制读取 Chrome 等浏览器的选中文字，并尽量恢复原来的剪贴板。" = "Read selected text from Chrome and other browsers via a temporary copy, then restore your clipboard when possible.";
 "释义" = "Meaning";
 "重做" = "Redo";
 "重命名" = "Rename";

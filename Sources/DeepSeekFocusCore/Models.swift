@@ -263,6 +263,7 @@ public enum DeepSeekError: LocalizedError, Equatable, Sendable {
     case http(status: Int, message: String?)
     case invalidResponse(String)
     case network(String)
+    case streamIncomplete
     case cancelled
 
     public var errorDescription: String? {
@@ -279,6 +280,8 @@ public enum DeepSeekError: LocalizedError, Equatable, Sendable {
             return L10n.format("DeepSeek 返回了无法解析的数据：%@", message)
         case .network(let message):
             return L10n.format("网络连接失败：%@", message)
+        case .streamIncomplete:
+            return L10n.string("连接提前结束，回答可能不完整。")
         case .cancelled:
             return L10n.string("已停止生成。")
         }
@@ -357,6 +360,29 @@ public enum ReasoningEffortCopy {
         case "xhigh": return "更深入的推理，响应会更慢。"
         case "max": return "最深入的推理，耗时和消耗最高。"
         default: return "由 DeepSeek 模型决定思考深度。"
+        }
+    }
+}
+
+
+public enum ChatFinishReason {
+    /// Returns a user-facing notice when a terminal finish reason is not a
+    /// normal `stop`. A nil result means the response is complete.
+    public static func notice(for reason: String?) -> String? {
+        guard let reason, !reason.isEmpty, reason != "stop" else { return nil }
+        switch reason {
+        case "length":
+            return L10n.string("回答达到长度上限，可能不完整。")
+        case "content_filter":
+            return L10n.string("回答被内容安全策略截断。")
+        case "aborted":
+            return L10n.string("生成被中断，回答可能不完整。")
+        case "tool_calls":
+            return L10n.string("模型未能在本轮完成最终回答。")
+        case "insufficient_system_resource":
+            return L10n.string("服务资源不足，回答可能不完整。")
+        default:
+            return L10n.format("回答提前结束（%@），可能不完整。", reason)
         }
     }
 }

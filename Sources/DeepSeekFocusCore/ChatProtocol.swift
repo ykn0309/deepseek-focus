@@ -71,6 +71,34 @@ public struct APIMessage: Codable, Equatable, Sendable {
         case toolCalls = "tool_calls"
         case toolCallID = "tool_call_id"
     }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(role, forKey: .role)
+
+        // DeepSeek requires assistant `content` to be present and nullable when
+        // the assistant turn consists only of tool calls. Swift's synthesized
+        // encoder omits nil optionals, so encode it explicitly.
+        if role == .assistant {
+            if let content {
+                try container.encode(content, forKey: .content)
+            } else {
+                try container.encodeNil(forKey: .content)
+            }
+        } else if let content {
+            try container.encode(content, forKey: .content)
+        }
+
+        if let reasoningContent {
+            try container.encode(reasoningContent, forKey: .reasoningContent)
+        }
+        if let toolCalls {
+            try container.encode(toolCalls, forKey: .toolCalls)
+        }
+        if let toolCallID {
+            try container.encode(toolCallID, forKey: .toolCallID)
+        }
+    }
 }
 
 // MARK: - Request
@@ -112,7 +140,9 @@ public struct ChatCompletionRequest: Encodable, Sendable {
         // an effort level returned by DeepSeek's /models endpoint, so omit it.
         self.reasoningEffort = reasoningEffort == "none" ? nil : reasoningEffort
         self.tools = tools
-        self.toolChoice = (tools?.isEmpty == false) ? "auto" : nil
+        // Let the API apply its default (`auto`) rather than sending an explicit
+        // tool_choice value, which differs across compatible endpoints.
+        self.toolChoice = nil
         self.streamOptions = StreamOptions()
         self.maxTokens = maxTokens
     }

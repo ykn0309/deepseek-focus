@@ -31,6 +31,7 @@ struct ConversationTurn: Identifiable, Codable {
     var errorMessage: String?
     var needsSetup = false
     var wasStopped = false
+    var incompleteMessage: String?
     var usedSearch = false
     var reasoningStartedAt: Date?
     var reasoningDuration: TimeInterval?
@@ -229,6 +230,23 @@ final class SpotlightViewModel: ObservableObject {
 
     /// Called whenever the palette is summoned from a shortcut/menu. Every summon starts with
     /// a clean search field; the previous conversation stays available in history.
+    func continueFromSelection(question: String, answer: String) {
+        beginFreshInvocation()
+        isConversation = true
+        engine = ConversationEngine(messages: [
+            .user(question),
+            .assistant(content: answer)
+        ])
+        var turn = ConversationTurn(question: question)
+        turn.answer = answer
+        turn.isStreaming = false
+        turns = [turn]
+        ensureSessionIdentity()
+        requestScroll(force: true)
+        focusToken &+= 1
+        persistCurrentSessionIfNeeded(touch: true)
+    }
+
     func beginFreshInvocation() {
         persistCurrentSessionIfNeeded()
         activeJob = nil
@@ -461,6 +479,10 @@ final class SpotlightViewModel: ObservableObject {
             currentSessionTitle = trimmed
             currentSessionTitleGenerated = true
         }
+        if let job = backgroundJobs[session.id] {
+            job.title = trimmed
+            job.titleGenerated = true
+        }
     }
 
     func deleteHistorySession(_ session: ConversationSession) {
@@ -585,6 +607,9 @@ final class SpotlightViewModel: ObservableObject {
 
     private func persistSessionConfigurationIfNeeded() {
         guard let currentSessionID else { return }
+        if let job = backgroundJobs[currentSessionID] {
+            job.configuration = sessionConfiguration
+        }
         historyStore.updateConfiguration(
             id: currentSessionID,
             modelID: sessionConfiguration.modelID,
@@ -700,8 +725,12 @@ final class SpotlightViewModel: ObservableObject {
                 }
             }
 
-        case .completed:
-            break
+        case .completed(_, let finishReason):
+            if let notice = ChatFinishReason.notice(for: finishReason) {
+                update { turn in
+                    turn.incompleteMessage = notice
+                }
+            }
         }
 
         if isActive {

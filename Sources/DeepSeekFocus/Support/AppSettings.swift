@@ -69,6 +69,7 @@ final class AppSettings: ObservableObject {
         static let selectionShortcut = "deepseek.selectionShortcut"
         static let translationTarget = "deepseek.translationTarget"
         static let selectionActionsEnabled = "deepseek.selectionActionsEnabled"
+        static let selectionClipboardFallbackEnabled = "deepseek.selectionClipboardFallbackEnabled"
         static let askSelectionConfiguration = "deepseek.selection.ask"
         static let translateSelectionConfiguration = "deepseek.selection.translate"
         static let dictionarySelectionConfiguration = "deepseek.selection.dictionary"
@@ -98,6 +99,9 @@ final class AppSettings: ObservableObject {
     }
     @Published var selectionActionsEnabled: Bool {
         didSet { defaults.set(selectionActionsEnabled, forKey: Key.selectionActionsEnabled) }
+    }
+    @Published var selectionClipboardFallbackEnabled: Bool {
+        didSet { defaults.set(selectionClipboardFallbackEnabled, forKey: Key.selectionClipboardFallbackEnabled) }
     }
     @Published var askSelectionConfiguration: SelectionActionConfiguration {
         didSet { save(askSelectionConfiguration, forKey: Key.askSelectionConfiguration) }
@@ -209,6 +213,7 @@ final class AppSettings: ObservableObject {
             self.translationTarget = TranslationTarget.systemDefault(for: AppLanguage.systemCode)
         }
         self.selectionActionsEnabled = defaults.object(forKey: Key.selectionActionsEnabled) as? Bool ?? true
+        self.selectionClipboardFallbackEnabled = defaults.object(forKey: Key.selectionClipboardFallbackEnabled) as? Bool ?? true
         self.askSelectionConfiguration = Self.loadConfiguration(
             from: defaults,
             key: Key.askSelectionConfiguration,

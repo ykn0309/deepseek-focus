@@ -121,6 +121,33 @@ struct CoreChecks {
         check(dictionary?.definitions.first?.meaning == "lasting a very short time", "dictionary parse definitions")
         check(dictionary?.synonyms.count == 2, "dictionary parse synonyms")
 
+        let toolOnly = APIMessage.assistant(
+            content: nil,
+            toolCalls: [ChatToolCall(
+                id: "call_1",
+                type: "function",
+                function: ChatFunctionCall(name: "web_search", arguments: "{}")
+            )]
+        )
+        let toolOnlyData = try! JSONEncoder().encode(toolOnly)
+        let toolOnlyObject = try! JSONSerialization.jsonObject(with: toolOnlyData) as! [String: Any]
+        check(toolOnlyObject.keys.contains("content"), "assistant tool-call message encodes content key")
+        check(toolOnlyObject["content"] is NSNull, "assistant tool-call content is null")
+        check(ChatFinishReason.notice(for: "stop") == nil, "stop finish reason is complete")
+        check(ChatFinishReason.notice(for: "length") != nil, "length finish reason produces a notice")
+        check(ChatFinishReason.notice(for: "content_filter") != nil, "content filter produces a notice")
+
+        let requestWithTools = ChatCompletionRequest(
+            model: "deepseek-flash",
+            messages: [.user("search")],
+            reasoningEffort: "none",
+            tools: [WebSearchTool.definition],
+            maxTokens: 8_192
+        )
+        let requestData = try! JSONEncoder().encode(requestWithTools)
+        let requestObject = try! JSONSerialization.jsonObject(with: requestData) as! [String: Any]
+        check(!requestObject.keys.contains("tool_choice"), "request omits explicit tool_choice")
+
         let reasoningOnly = APIMessage.assistant(content: nil, reasoningContent: "thinking")
         check(reasoningOnly.isEmptyAssistantMessage, "detects reasoning-only assistant messages")
         check(APIMessage.assistant(content: "  ").isEmptyAssistantMessage, "detects blank assistant messages")

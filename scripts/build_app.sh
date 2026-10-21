@@ -55,19 +55,22 @@ rm -f "$ROOT/dist/DeepSeekFocus-latest.zip"
   zip -qry -X DeepSeekFocus-latest.zip "$APP_NAME.app"
 )
 
-# Keep the installed application up to date on every build.
+# Building and installing are separate operations. Only replace an installed
+# copy when the caller explicitly opts in with INSTALL=1.
 INSTALL_DIR="${INSTALL_DIR:-/Applications}"
 INSTALLED_APP="$INSTALL_DIR/$APP_NAME.app"
-if [ -d "$INSTALL_DIR" ] && [ -w "$INSTALL_DIR" ]; then
-  rm -rf "$INSTALLED_APP"
-  ditto "$BUNDLE" "$INSTALLED_APP"
-  LEGACY_APP="$INSTALL_DIR/DeepSeek 聚焦.app"
-  if [ -d "$LEGACY_APP" ] && [ "$LEGACY_APP" != "$INSTALLED_APP" ]; then
-    rm -rf "$LEGACY_APP"
+if [ "${INSTALL:-0}" = "1" ]; then
+  if [ -d "$INSTALL_DIR" ] && [ -w "$INSTALL_DIR" ]; then
+    rm -rf "$INSTALLED_APP"
+    ditto "$BUNDLE" "$INSTALLED_APP"
+    LEGACY_APP="$INSTALL_DIR/DeepSeek 聚焦.app"
+    if [ -d "$LEGACY_APP" ] && [ "$LEGACY_APP" != "$INSTALLED_APP" ]; then
+      rm -rf "$LEGACY_APP"
+    fi
+    echo "Installed: $INSTALLED_APP"
+  else
+    echo "warning: $INSTALL_DIR is not writable; skipped installation." >&2
   fi
-  echo "Installed: $INSTALLED_APP"
-else
-  echo "warning: $INSTALL_DIR is not writable; skipped installation." >&2
 fi
 
 echo "Built: $BUNDLE"

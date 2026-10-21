@@ -21,12 +21,18 @@ swift package resolve
 ./scripts/build_app.sh
 ```
 
+`build_app.sh` only writes `dist/`; it does not replace the installed app. Use `./scripts/install_local.sh` for an explicit local install.
+
 `build_app.sh` creates:
 
 - `dist/DeepSeek Focus.app`
 - `dist/DeepSeekFocus-latest.zip`
 
-It uses a temporary ad-hoc signature and replaces `/Applications/DeepSeek Focus.app` when that directory is writable. Otherwise it leaves the artifacts in `dist/`.
+It uses a temporary ad-hoc signature. To install it locally, run:
+
+```bash
+./scripts/install_local.sh
+```
 
 ### Command Line Tools only
 

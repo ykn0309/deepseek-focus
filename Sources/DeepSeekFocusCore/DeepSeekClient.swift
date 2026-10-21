@@ -93,6 +93,7 @@ public final class DeepSeekClient {
                     }
 
                     var didEmitFinish = false
+                    var sawDone = false
                     var lastFinishReason: String?
                     var lastUsage: TokenUsage?
 
@@ -107,7 +108,10 @@ public final class DeepSeekClient {
                         var payload = String(line.dropFirst(5))
                         if payload.hasPrefix(" ") { payload.removeFirst() }
                         payload = payload.trimmingCharacters(in: .whitespacesAndNewlines)
-                        if payload == "[DONE]" { break }
+                        if payload == "[DONE]" {
+                            sawDone = true
+                            break
+                        }
                         guard !payload.isEmpty else { continue }
 
                         let chunk: ChatCompletionChunk
@@ -139,6 +143,9 @@ public final class DeepSeekClient {
                         }
                     }
 
+                    guard sawDone else {
+                        throw DeepSeekError.streamIncomplete
+                    }
                     if !didEmitFinish {
                         continuation.yield(.finished(reason: lastFinishReason, usage: lastUsage))
                     }

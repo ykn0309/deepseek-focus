@@ -34,9 +34,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         selectionPanelController = SelectionActionPanelController()
         selectionResultPanelController = SelectionResultPanelController(settings: settings)
-        selectionResultPanelController.onContinue = { [weak self] text in
+        selectionResultPanelController.onContinue = { [weak self] question, answer in
             guard let self else { return }
-            self.panelController.startSelectionAction(text: text, action: .ask)
+            self.panelController.continueFromSelection(question: question, answer: answer)
         }
         selectionPanelController.onSelect = { [weak self] text, action, anchor in
             guard let self else { return }
@@ -142,7 +142,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             presentAccessibilityAlert()
             return
         }
-        guard let context = SelectionReader.read() else {
+        guard let context = SelectionReader.read(
+            allowClipboardFallback: settings.selectionClipboardFallbackEnabled
+        ) else {
             NSSound.beep()
             return
         }

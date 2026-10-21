@@ -661,6 +661,21 @@ private struct TurnView: View {
                     ErrorCard(message: error, needsSetup: turn.needsSetup, model: model)
                 }
 
+                if let notice = turn.incompleteMessage {
+                    HStack(alignment: .top, spacing: 7) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 9.5, weight: .medium))
+                            .padding(.top, 1)
+                        Text(notice)
+                            .font(.system(size: 10.5))
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .foregroundStyle(FocusTheme.warning.opacity(0.9))
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 6)
+                    .background(FocusTheme.warning.opacity(0.06), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                }
+
                 if !turn.sources.isEmpty {
                     SourcesView(sources: turn.sources)
                 }

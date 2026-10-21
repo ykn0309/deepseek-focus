@@ -361,6 +361,25 @@ struct SettingsView: View {
                         .tint(FocusTheme.accent)
                 }
 
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Chrome 兼容模式")
+                            .font(.system(size: 11.5, weight: .medium))
+                        Text("通过临时复制读取 Chrome 等浏览器的选中文字，并尽量恢复原来的剪贴板。")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.tertiary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer()
+                    Toggle("", isOn: $settings.selectionClipboardFallbackEnabled)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                        .controlSize(.small)
+                        .tint(FocusTheme.accent)
+                }
+                .opacity(settings.selectionActionsEnabled ? 1 : 0.45)
+                .disabled(!settings.selectionActionsEnabled)
+
                 Divider()
 
                 VStack(alignment: .leading, spacing: 10) {

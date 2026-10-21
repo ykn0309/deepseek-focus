@@ -4,7 +4,7 @@ import DeepSeekFocusCore
 
 @MainActor
 final class SelectionResultPanelController {
-    var onContinue: ((String) -> Void)?
+    var onContinue: ((String, String) -> Void)?
 
     private let model: SelectionResultModel
     private var panel: NSPanel?
@@ -53,10 +53,10 @@ final class SelectionResultPanelController {
             rootView: SelectionResultView(
                 model: model,
                 onClose: { [weak self] in self?.hide() },
-                onContinue: { [weak self] text in
+                onContinue: { [weak self] question, answer in
                     guard let self else { return }
                     self.hide()
-                    self.onContinue?(text)
+                    self.onContinue?(question, answer)
                 }
             )
         )

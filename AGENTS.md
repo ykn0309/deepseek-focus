@@ -38,9 +38,11 @@ SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk swift run CoreCh
 Build without installing locally:
 
 ```bash
-INSTALL_DIR=/tmp/deepseek-focus-no-local-install ./scripts/build_app.sh
+./scripts/build_app.sh
 ./scripts/build_dmg.sh
 ```
+
+`build_app.sh` only writes `dist/`. Use `./scripts/install_local.sh` when you explicitly want to replace `/Applications/DeepSeek Focus.app`.
 
 ## Safety
 

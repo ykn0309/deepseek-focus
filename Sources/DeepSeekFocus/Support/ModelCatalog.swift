@@ -32,6 +32,7 @@ final class ModelCatalog: ObservableObject {
     private let settings: AppSettings
     private let defaults: UserDefaults
     private var apiKeyObserver: AnyCancellable?
+    private var verificationID = UUID()
     private static let cacheKey = "deepseek.modelCatalog"
     private static let cacheDateKey = "deepseek.modelCatalogDate"
     private static let verifiedKey = "deepseek.keyVerified"
@@ -66,7 +67,8 @@ final class ModelCatalog: ObservableObject {
     }
 
     func invalidateConnection() {
-        guard !isLoading else { return }
+        verificationID = UUID()
+        isLoading = false
         error = nil
         connectionMessage = nil
         defaults.set(false, forKey: Self.verifiedKey)
@@ -113,15 +115,25 @@ final class ModelCatalog: ObservableObject {
             return
         }
 
+        let requestID = UUID()
+        verificationID = requestID
         isLoading = true
         connectionState = .checking
         connectionMessage = nil
         error = nil
-        defer { isLoading = false }
+        defer {
+            if verificationID == requestID {
+                isLoading = false
+            }
+        }
 
         do {
             let client = DeepSeekClient(baseURL: settings.baseURL)
             let fetched = try await client.fetchModels(apiKey: key)
+            guard verificationID == requestID,
+                  settings.apiKey.trimmingCharacters(in: .whitespacesAndNewlines) == key else {
+                return
+            }
             models = fetched
             lastUpdated = Date()
             settings.reconcile(with: fetched)
@@ -130,11 +142,13 @@ final class ModelCatalog: ObservableObject {
             connectionMessage = L10n.format("API Key 验证成功，已同步 %ld 个模型。", fetched.count)
             defaults.set(true, forKey: Self.verifiedKey)
         } catch let error as DeepSeekError {
+            guard verificationID == requestID else { return }
             connectionState = .failed
             connectionMessage = nil
             self.error = error.errorDescription
             defaults.set(false, forKey: Self.verifiedKey)
         } catch {
+            guard verificationID == requestID else { return }
             connectionState = .failed
             connectionMessage = nil
             self.error = L10n.format("获取模型列表失败：%@", error.localizedDescription)

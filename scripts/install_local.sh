@@ -3,7 +3,6 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 APP_NAME="DeepSeek Focus"
-STAGE="/tmp/deepseek-focus-local-stage"
 INSTALLED="/Applications/$APP_NAME.app"
 
 if [ ! -w "/Applications" ]; then
@@ -11,8 +10,7 @@ if [ ! -w "/Applications" ]; then
   exit 1
 fi
 
-mkdir -p "$STAGE"
-INSTALL_DIR="$STAGE" "$ROOT/scripts/build_app.sh"
+"$ROOT/scripts/build_app.sh"
 
 if pgrep -x DeepSeekFocus >/dev/null 2>&1; then
   osascript -e 'tell application "DeepSeek Focus" to quit' >/dev/null 2>&1 || true
@@ -25,7 +23,6 @@ if pgrep -x DeepSeekFocus >/dev/null 2>&1; then
 fi
 
 rm -rf "$INSTALLED"
-ditto "$STAGE/$APP_NAME.app" "$INSTALLED"
-rm -rf "$STAGE"
+ditto "$ROOT/dist/$APP_NAME.app" "$INSTALLED"
 open "$INSTALLED"
 echo "Installed and relaunched: $INSTALLED"

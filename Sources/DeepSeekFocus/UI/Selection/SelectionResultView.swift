@@ -4,7 +4,7 @@ import DeepSeekFocusCore
 struct SelectionResultView: View {
     @ObservedObject var model: SelectionResultModel
     var onClose: () -> Void
-    var onContinue: (String) -> Void
+    var onContinue: (String, String) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -107,7 +107,7 @@ struct SelectionResultView: View {
                 .foregroundStyle(.tertiary)
             Spacer()
             Button {
-                onContinue(model.selectedText)
+                onContinue(model.selectedText, model.content)
             } label: {
                 HStack(spacing: 4) {
                     Text("在对话中继续")

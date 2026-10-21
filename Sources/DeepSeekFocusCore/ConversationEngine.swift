@@ -40,7 +40,7 @@ public enum AgentEvent: Sendable {
     case searchStarted(query: String)
     case searchSucceeded(query: String, sources: [SearchSource])
     case searchFailed(query: String, message: String)
-    case completed(usage: TokenUsage?)
+    case completed(usage: TokenUsage?, finishReason: String?)
 }
 
 /// Runs one assistant turn, including any model-initiated web searches, and keeps the raw
@@ -95,6 +95,7 @@ public final class ConversationEngine {
         var searchCount = 0
         var searchCache: [String: [SearchSource]] = [:]
         var finalUsage: TokenUsage?
+        var finalFinishReason: String?
         let maxRounds = 5
 
         for round in 0..<maxRounds {
@@ -119,8 +120,9 @@ public final class ConversationEngine {
                         continuation.yield(.contentDelta(delta))
                     case .toolCalls(let deltas):
                         accumulator.consume(deltas)
-                    case .finished(_, let usage):
+                    case .finished(let reason, let usage):
                         if let usage { roundUsage = usage }
+                        if let reason { finalFinishReason = reason }
                     }
                 }
             } catch {
@@ -132,17 +134,18 @@ public final class ConversationEngine {
 
             let toolCalls = accumulator.resolved()
             let answerText = roundText.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !answerText.isEmpty || !toolCalls.isEmpty {
-                self.messages.append(.assistant(
-                    content: answerText.isEmpty ? nil : roundText,
-                    reasoningContent: roundReasoning.isEmpty ? nil : roundReasoning,
-                    toolCalls: toolCalls.isEmpty ? nil : toolCalls
-                ))
+            guard !answerText.isEmpty || !toolCalls.isEmpty else {
+                throw DeepSeekError.invalidResponse(L10n.string("模型没有返回最终回答。"))
             }
+            self.messages.append(.assistant(
+                content: answerText.isEmpty ? nil : roundText,
+                reasoningContent: roundReasoning.isEmpty ? nil : roundReasoning,
+                toolCalls: toolCalls.isEmpty ? nil : toolCalls
+            ))
             if let roundUsage { finalUsage = roundUsage }
 
             guard !toolCalls.isEmpty else {
-                continuation.yield(.completed(usage: finalUsage))
+                continuation.yield(.completed(usage: finalUsage, finishReason: finalFinishReason))
                 return
             }
 
@@ -195,7 +198,7 @@ public final class ConversationEngine {
                 && round < 2
         }
 
-        continuation.yield(.completed(usage: finalUsage))
+        continuation.yield(.completed(usage: finalUsage, finishReason: finalFinishReason))
     }
 
     private func makeRequest(
@@ -221,10 +224,10 @@ public final class ConversationEngine {
 
     private static func maxTokens(for effort: String) -> Int {
         switch effort {
-        case "none": return 2_048
-        case "low", "minimal": return 4_096
-        case "max", "xhigh": return 16_384
-        default: return 8_192
+        case "none": return 4_096
+        case "low", "minimal": return 8_192
+        case "max", "xhigh": return 32_768
+        default: return 16_384
         }
     }
 

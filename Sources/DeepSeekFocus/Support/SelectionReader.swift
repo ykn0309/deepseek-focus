@@ -7,13 +7,14 @@ struct SelectionContext {
 }
 
 enum SelectionReader {
-    static func read() -> SelectionContext? {
+    static func read(allowClipboardFallback: Bool = true) -> SelectionContext? {
         if let context = readFromAccessibility() {
             return context
         }
         // Some Chromium-based apps do not expose the selected text through the
         // Accessibility API. Fall back to a transient Cmd-C, then restore the
-        // previous clipboard contents.
+        // previous clipboard contents only if nobody else changed it meanwhile.
+        guard allowClipboardFallback, isChromiumFrontmost() else { return nil }
         guard let copied = copySelectedTextViaClipboard() else { return nil }
         let text = copied.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return nil }
@@ -103,11 +104,28 @@ enum SelectionReader {
         var items: [[NSPasteboard.PasteboardType: Data]]
     }
 
+    private static let chromiumBundleIdentifiers: Set<String> = [
+        "com.google.Chrome",
+        "com.google.Chrome.canary",
+        "com.microsoft.edgemac",
+        "com.brave.Browser",
+        "company.thebrowser.Browser",
+        "org.chromium.Chromium",
+        "com.vivaldi.Vivaldi",
+        "com.operasoftware.Opera"
+    ]
+
+    private static func isChromiumFrontmost() -> Bool {
+        guard let identifier = NSWorkspace.shared.frontmostApplication?.bundleIdentifier else {
+            return false
+        }
+        return chromiumBundleIdentifiers.contains(identifier)
+    }
+
     private static func copySelectedTextViaClipboard() -> String? {
         let pasteboard = NSPasteboard.general
         let before = pasteboard.changeCount
         let snapshot = snapshot(of: pasteboard)
-        defer { restore(snapshot, to: pasteboard) }
 
         let source = CGEventSource(stateID: .combinedSessionState)
         guard let down = CGEvent(keyboardEventSource: source, virtualKey: 8, keyDown: true),
@@ -120,16 +138,27 @@ enum SelectionReader {
         usleep(50_000)
         up.post(tap: .cghidEventTap)
 
+        var observedChange: Int?
+        var copiedText: String?
         let deadline = Date().addingTimeInterval(0.55)
         while Date() < deadline {
-            if pasteboard.changeCount != before,
-               let text = pasteboard.string(forType: .string),
-               !text.isEmpty {
-                return text
+            let change = pasteboard.changeCount
+            if change != before {
+                observedChange = change
+                if let text = pasteboard.string(forType: .string), !text.isEmpty {
+                    copiedText = text
+                    break
+                }
             }
             usleep(20_000)
         }
-        return nil
+
+        // Only restore when the pasteboard still contains the temporary copy.
+        // If another app changed it in the meantime, its newer contents win.
+        if let observedChange, pasteboard.changeCount == observedChange {
+            restore(snapshot, to: pasteboard)
+        }
+        return copiedText
     }
 
     private static func snapshot(of pasteboard: NSPasteboard) -> ClipboardSnapshot {

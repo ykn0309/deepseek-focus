@@ -100,6 +100,13 @@ final class SpotlightPanelController {
         model.submit()
     }
 
+    /// Promotes a finished quick answer into a real session without issuing
+    /// the same request again.
+    func continueFromSelection(question: String, answer: String) {
+        model.continueFromSelection(question: question, answer: answer)
+        show()
+    }
+
     /// Summoning the palette always starts from a clean search field, but a
     /// missing API key must be resolved before the user can reach the composer.
     func showFresh() {
