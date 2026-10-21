@@ -72,6 +72,7 @@
 "回答提前结束（%@），可能不完整。" = "The answer ended early (%@) and may be incomplete.";
 "回答被内容安全策略截断。" = "The answer was cut off by the content safety policy.";
 "回答达到长度上限，可能不完整。" = "The answer reached the length limit and may be incomplete.";
+"在下方输入你的问题。" = "Type your question below.";
 "在任何应用中唤出 DeepSeek Focus" = "Open DeepSeek Focus from any app";
 "在对话中继续" = "Continue in chat";
 "在展开页中显示或隐藏历史侧边栏。" = "Show or hide the history sidebar in the expanded view.";

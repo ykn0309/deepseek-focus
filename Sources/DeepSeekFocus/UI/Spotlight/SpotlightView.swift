@@ -395,39 +395,13 @@ private struct ConversationSurface: View {
                 Text(L10n.string("有什么可以帮你的吗？"))
                     .font(.system(size: 21, weight: .semibold))
                     .foregroundStyle(.primary.opacity(0.86))
-                Text(L10n.string("问点什么，或者从下面开始。"))
+                Text(L10n.string("在下方输入你的问题。"))
                     .font(.system(size: 11.5))
                     .foregroundStyle(.tertiary)
             }
-
-            HStack(spacing: 8) {
-                suggestionButton("解释一个概念")
-                suggestionButton("帮我写段代码")
-                suggestionButton("搜索最新资讯")
-            }
-            .padding(.top, 4)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, 28)
-    }
-
-    private func suggestionButton(_ key: String) -> some View {
-        Button {
-            model.input = L10n.string(key)
-            model.requestFocus()
-        } label: {
-            Text(L10n.string(key))
-                .font(.system(size: 10.5, weight: .medium))
-                .foregroundStyle(.primary.opacity(0.68))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(Color.primary.opacity(0.035), in: Capsule())
-                .overlay {
-                    Capsule().strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.7)
-                }
-        }
-        .buttonStyle(.plain)
-        .help(L10n.string("填入输入框"))
     }
 
     private var composer: some View {

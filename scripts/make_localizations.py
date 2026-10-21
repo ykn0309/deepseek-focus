@@ -311,6 +311,7 @@ T = {
 "安装更新时执行命令失败。": "A command failed while installing the update.",
 "有什么可以帮你的吗？": "What can I help you with?",
 "问点什么，或者从下面开始。": "Ask anything, or start with one of these.",
+"在下方输入你的问题。": "Type your question below.",
 "解释一个概念": "Explain a concept",
 "帮我写段代码": "Write some code",
 "搜索最新资讯": "Search the latest news",
