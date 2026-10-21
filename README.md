@@ -39,6 +39,18 @@ The build is ad-hoc signed and not notarized. If macOS blocks it on first launch
 - **Per-action controls**: each selection action has its own model, thinking level, and web search toggle. Translation and Look up default to thinking off; Ask DeepSeek defaults to web search on. Selection actions can be disabled entirely.
 - **Translation target**: follows the system language by default and can be set to Chinese or English.
 
+## Troubleshooting
+
+### Global shortcut does not work in Ghostty
+
+Ghostty 1.3.1 can keep macOS **Secure Keyboard Entry** active after it loses focus. Secure Input intentionally blocks global hotkeys, including `⌥D`. Turn off **Secure Keyboard Entry** in Ghostty's menu, or update Ghostty, then try again.
+
+See [Ghostty discussion #12991](https://github.com/ghostty-org/ghostty/discussions/12991) and [issue #1325](https://github.com/ghostty-org/ghostty/issues/1325).
+
+### Accessibility permission is requested again after an update
+
+Ad-hoc signed builds are identified by their binary hash, so rebuilding changes the identity used by macOS TCC. Local test installs use a stable ad-hoc designated requirement to avoid this; after granting Accessibility once, future local installs should keep it. Public releases should use Developer ID signing for a stable identity.
+
 ## Versioning
 
 Starting with **v1.9**, public releases use two-part versions such as `v1.9` and `v1.10`. Build numbers are internal and only shown in About. Older `v1.8.x` releases keep their original numbers and are not renamed.

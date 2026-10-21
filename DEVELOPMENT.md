@@ -21,7 +21,7 @@ swift package resolve
 ./scripts/build_app.sh
 ```
 
-`build_app.sh` only writes `dist/`; it does not replace the installed app. Use `./scripts/install_local.sh` for an explicit local install.
+`build_app.sh` only writes `dist/`; it does not replace the installed app. Use `./scripts/install_local.sh` for an explicit local install. Local installs set `STABLE_ADHOC_SIGNING=1`, which embeds a stable designated requirement so Accessibility permission survives rebuilds. Public builds must use `SIGN_IDENTITY` with a Developer ID certificate.
 
 `build_app.sh` creates:
 

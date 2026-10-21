@@ -10,7 +10,7 @@ if [ ! -w "/Applications" ]; then
   exit 1
 fi
 
-"$ROOT/scripts/build_app.sh"
+STABLE_ADHOC_SIGNING=1 "$ROOT/scripts/build_app.sh"
 
 if pgrep -x DeepSeekFocus >/dev/null 2>&1; then
   osascript -e 'tell application "DeepSeek Focus" to quit' >/dev/null 2>&1 || true

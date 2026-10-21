@@ -39,6 +39,18 @@ DeepSeek 聚焦是一个原生 macOS 菜单栏应用。按下全局快捷键，�
 - **独立配置**：三个选区功能分别配置模型、思考强度和联网搜索。翻译和查词默认关闭思考，问 DeepSeek 默认开启联网搜索；整个选区快捷操作也可以关闭。
 - **翻译目标语言**：默认跟随系统语言，可设置中文或 English。
 
+## 常见问题
+
+### Ghostty 中全局快捷键无效
+
+Ghostty 1.3.1 有一个已知问题：失去焦点后可能仍保持 macOS 的 **安全键盘输入**（Secure Keyboard Entry）。安全输入会主动屏蔽全局快捷键，包括 `⌥D`。请在 Ghostty 菜单中关闭 **Secure Keyboard Entry**，或更新 Ghostty 后重试。
+
+参考 [Ghostty discussion #12991](https://github.com/ghostty-org/ghostty/discussions/12991) 和 [issue #1325](https://github.com/ghostty-org/ghostty/issues/1325)。
+
+### 更新后又要重新授权辅助功能
+
+ad-hoc 签名版本的身份取决于二进制哈希，重新构建后 macOS TCC 会认为它是一个新版本。本地测试安装现在使用稳定的 ad-hoc designated requirement；授权一次后，后续本地安装应能保留权限。公开版本应使用 Developer ID 签名，才能获得稳定身份。
+
 ## 版本号
 
 从 **v1.9** 开始，公开版本使用两位版本号，例如 `v1.9`、`v1.10`。构建号只作为内部编号，在「关于」中显示。已有的 `v1.8.x` 版本保留原编号，不会重命名。

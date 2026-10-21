@@ -26,6 +26,7 @@
 - When app code changes and the user wants to test locally, run `./scripts/install_local.sh`.
 - This stages a fresh build, quits the running app, replaces the installed app, and relaunches it.
 - Local test installs are **not releases**: do not bump the marketing version, create a tag, or publish a GitHub Release for them.
+- `install_local.sh` uses `STABLE_ADHOC_SIGNING=1` so local Accessibility grants can survive rebuilds. Do not use that signing mode for a public release; public builds need a Developer ID identity.
 - The installed test build can carry the same version number as the latest release; only bump the version during an explicitly requested release.
 
 ## Build and test

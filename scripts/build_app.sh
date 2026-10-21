@@ -47,9 +47,20 @@ printf 'APPL????' > "$BUNDLE/Contents/PkgInfo"
 chmod +x "$BUNDLE/Contents/MacOS/DeepSeekFocus"
 SIGN_IDENTITY="${SIGN_IDENTITY:--}"
 if [ "$SIGN_IDENTITY" = "-" ]; then
-  codesign --force --deep --sign - "$BUNDLE" >/dev/null 2>&1 || {
-    echo "warning: ad-hoc code signing failed; the app may still run locally." >&2
-  }
+  if [ "${STABLE_ADHOC_SIGNING:-0}" = "1" ]; then
+    # Local test builds can use a stable designated requirement so macOS TCC
+    # (Accessibility) keeps its grant across rebuilds. Never use this for a
+    # public release: it intentionally does not bind to the binary hash.
+    BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$BUNDLE/Contents/Info.plist")"
+    codesign --force --deep --sign - --identifier "$BUNDLE_ID" \
+      -r="designated => identifier \"$BUNDLE_ID\"" "$BUNDLE" >/dev/null 2>&1 || {
+      echo "warning: stable ad-hoc code signing failed; the app may still run locally." >&2
+    }
+  else
+    codesign --force --deep --sign - "$BUNDLE" >/dev/null 2>&1 || {
+      echo "warning: ad-hoc code signing failed; the app may still run locally." >&2
+    }
+  fi
 else
   codesign --force --deep --options runtime --timestamp --sign "$SIGN_IDENTITY" "$BUNDLE" || {
     echo "error: code signing with $SIGN_IDENTITY failed." >&2
