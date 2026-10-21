@@ -45,9 +45,17 @@ fi
 printf 'APPL????' > "$BUNDLE/Contents/PkgInfo"
 
 chmod +x "$BUNDLE/Contents/MacOS/DeepSeekFocus"
-codesign --force --deep --sign - "$BUNDLE" >/dev/null 2>&1 || {
-  echo "warning: ad-hoc code signing failed; the app may still run locally." >&2
-}
+SIGN_IDENTITY="${SIGN_IDENTITY:--}"
+if [ "$SIGN_IDENTITY" = "-" ]; then
+  codesign --force --deep --sign - "$BUNDLE" >/dev/null 2>&1 || {
+    echo "warning: ad-hoc code signing failed; the app may still run locally." >&2
+  }
+else
+  codesign --force --deep --options runtime --timestamp --sign "$SIGN_IDENTITY" "$BUNDLE" || {
+    echo "error: code signing with $SIGN_IDENTITY failed." >&2
+    exit 1
+  }
+fi
 
 rm -f "$ROOT/dist/DeepSeekFocus-latest.zip"
 (

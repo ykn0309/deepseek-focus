@@ -92,6 +92,18 @@ The DMG contains `DeepSeek Focus.app` and an Applications shortcut. Both the app
 
 For a release, publish the DMG, the ZIP, and a SHA-256 checksum file. The app checks `https://api.github.com/repos/ykn0309/deepseek-focus/releases/latest`; only the latest published, non-prerelease release is considered.
 
+### Developer ID and notarization
+
+The default build is ad-hoc signed. To produce a distributable build, provide a Developer ID Application identity and a `notarytool` keychain profile:
+
+```bash
+SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" ./scripts/build_app.sh
+./scripts/build_dmg.sh
+NOTARY_PROFILE="deepseek-focus-notary" ./scripts/notarize_dmg.sh
+```
+
+`build_app.sh` uses hardened runtime and a secure timestamp when `SIGN_IDENTITY` is not `-`. Notarization requires an Apple Developer account; without a Developer ID certificate the app must remain ad-hoc signed.
+
 ## In-app updates
 
 The updater requires both the ZIP and `.sha256` release assets. It:
