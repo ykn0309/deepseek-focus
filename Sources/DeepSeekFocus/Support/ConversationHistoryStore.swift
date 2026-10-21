@@ -21,8 +21,10 @@ struct ConversationSession: Codable, Identifiable {
 @MainActor
 final class ConversationHistoryStore: ObservableObject {
     @Published private(set) var sessions: [ConversationSession] = []
+    @Published private(set) var recoveryMessage: String?
 
     private let fileURL: URL
+    private let backupURL: URL
     private let maxSessions: Int
 
     init(fileURL: URL? = nil, maxSessions: Int = 50) {
@@ -36,6 +38,8 @@ final class ConversationHistoryStore: ObservableObject {
                 .appendingPathComponent("DeepSeekFocus", isDirectory: true)
                 .appendingPathComponent("history.json", isDirectory: false)
         }
+        self.backupURL = self.fileURL.deletingLastPathComponent()
+            .appendingPathComponent("history.backup.json", isDirectory: false)
         load()
     }
 
@@ -99,9 +103,27 @@ final class ConversationHistoryStore: ObservableObject {
 
     private func load() {
         guard let data = try? Data(contentsOf: fileURL) else { return }
-        guard let decoded = try? JSONDecoder().decode([ConversationSession].self, from: data) else { return }
-        sessions = decoded
-        sortSessions()
+        if let decoded = try? JSONDecoder().decode([ConversationSession].self, from: data) {
+            sessions = decoded
+            sortSessions()
+            return
+        }
+
+        // Keep a copy of the damaged file and try the last known-good backup.
+        let stamp = Int(Date().timeIntervalSince1970)
+        let corruptURL = fileURL.deletingLastPathComponent()
+            .appendingPathComponent("history.corrupt-\(stamp).json", isDirectory: false)
+        try? FileManager.default.copyItem(at: fileURL, to: corruptURL)
+
+        if let backupData = try? Data(contentsOf: backupURL),
+           let decoded = try? JSONDecoder().decode([ConversationSession].self, from: backupData) {
+            sessions = decoded
+            sortSessions()
+            recoveryMessage = L10n.string("历史记录文件损坏，已从备份恢复会话。")
+        } else {
+            sessions = []
+            recoveryMessage = L10n.string("历史记录文件损坏，已保留损坏文件，但无法恢复会话。")
+        }
     }
 
     private func persist() {
@@ -112,6 +134,12 @@ final class ConversationHistoryStore: ObservableObject {
                 [.posixPermissions: 0o700],
                 ofItemAtPath: directory.path
             )
+            if let existing = try? Data(contentsOf: fileURL),
+               (try? JSONDecoder().decode([ConversationSession].self, from: existing)) != nil {
+                try? FileManager.default.removeItem(at: backupURL)
+                try? FileManager.default.copyItem(at: fileURL, to: backupURL)
+            }
+
             let data = try JSONEncoder().encode(sessions)
             try data.write(to: fileURL, options: .atomic)
             try FileManager.default.setAttributes(

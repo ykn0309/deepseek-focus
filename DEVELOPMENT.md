@@ -52,11 +52,9 @@ Multi-turn requests resend user/assistant messages, `reasoning_content`, tool ca
 
 ## Local data
 
-- API key: `~/Library/Application Support/DeepSeekFocus/credentials.json` (0600).
-- History: `~/Library/Application Support/DeepSeekFocus/history.json` (0600, directory 0700).
-- No Keychain, accounts, telemetry, crash reporting, or remote configuration.
-
-The local file is an intentional tradeoff: it avoids Keychain prompts, but it is less protected than the Keychain. See the Privacy section in the README for the user-facing summary.
+- API key: macOS Keychain (`com.kainan.deepseekfocus` / `deepseek-api-key`). Existing `credentials.json` files continue to work and are migrated after the key is next saved. If Keychain access is unavailable, the app falls back to the legacy 0600 file.
+- History: `~/Library/Application Support/DeepSeekFocus/history.json` (0600, directory 0700), with `history.backup.json` and preserved `history.corrupt-*.json` files.
+- No accounts, telemetry, crash reporting, or remote configuration.
 
 ## Checks
 
@@ -119,7 +117,7 @@ The checksum and code-signature checks protect against corrupt or partially down
 - The current chat is written after each answer finishes. Switching away mid-stream saves the visible partial answer, but restored model context may omit the unfinished part.
 - Search API usage is billed per successful request.
 - History is local only; there is no cloud sync.
-- The API key is stored in a local file rather than the Keychain.
+- The API key prefers Keychain storage; the legacy local file is retained only as a fallback when Keychain access is unavailable.
 - Common LaTeX renders natively; complex custom macros or CJK inside `\text{}` may be limited by font fallback.
 - Automatic installation requires a writable `/Applications` and the ZIP + SHA-256 assets on the latest release.
 

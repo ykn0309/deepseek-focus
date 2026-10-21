@@ -56,6 +56,8 @@
 "剪切" = "Cut";
 "历史" = "History";
 "历史会话" = "History";
+"历史记录文件损坏，已从备份恢复会话。" = "The history file was damaged; conversations were restored from a backup.";
+"历史记录文件损坏，已保留损坏文件，但无法恢复会话。" = "The history file was damaged. A copy was kept, but conversations could not be recovered.";
 "发现新版本 %@" = "Version %@ is available";
 "发现新版本 v%@" = "Version v%@ is available";
 "发送消息后会自动保存在这里。" = "Messages are saved here automatically.";

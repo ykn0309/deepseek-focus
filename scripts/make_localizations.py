@@ -315,6 +315,8 @@ T = {
 "帮我写段代码": "Write some code",
 "搜索最新资讯": "Search the latest news",
 "填入输入框": "Fill the composer",
+"历史记录文件损坏，已从备份恢复会话。": "The history file was damaged; conversations were restored from a backup.",
+"历史记录文件损坏，已保留损坏文件，但无法恢复会话。": "The history file was damaged. A copy was kept, but conversations could not be recovered.",
 }
 
 def quote(value: str) -> str:

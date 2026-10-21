@@ -17,6 +17,21 @@ struct HistoryBrowser: View {
             newConversationButton
             searchField
                 .padding(.top, 9)
+            if let recoveryMessage = history.recoveryMessage {
+                HStack(alignment: .top, spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.system(size: 9.5))
+                        .padding(.top, 1)
+                    Text(recoveryMessage)
+                        .font(.system(size: 10))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .foregroundStyle(FocusTheme.warning.opacity(0.9))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                .background(FocusTheme.warning.opacity(0.06), in: RoundedRectangle(cornerRadius: 7))
+                .padding(.top, 7)
+            }
             content
                 .padding(.top, 5)
         }

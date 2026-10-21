@@ -101,6 +101,8 @@ final class SpotlightViewModel: ObservableObject {
     private var activeJob: GenerationJob?
     private var backgroundJobs: [UUID: GenerationJob] = [:]
     private var lastScrollTime = Date.distantPast
+    private var lastUIUpdateTime = Date.distantPast
+    private var pendingUIPublish: DispatchWorkItem?
     @Published private(set) var currentSessionID: UUID?
     private var currentSessionCreatedAt: Date?
     private var currentSessionTitle: String?
@@ -248,6 +250,7 @@ final class SpotlightViewModel: ObservableObject {
     }
 
     func beginFreshInvocation() {
+        cancelPendingUIPublish()
         persistCurrentSessionIfNeeded()
         activeJob = nil
         streamTask = nil
@@ -269,6 +272,7 @@ final class SpotlightViewModel: ObservableObject {
     }
 
     func newConversation() {
+        cancelPendingUIPublish()
         persistCurrentSessionIfNeeded()
         activeJob = nil
         streamTask = nil
@@ -322,6 +326,7 @@ final class SpotlightViewModel: ObservableObject {
     }
 
     func loadHistorySession(_ session: ConversationSession) {
+        cancelPendingUIPublish()
         if currentSessionID != session.id {
             persistCurrentSessionIfNeeded()
         }
@@ -677,7 +682,7 @@ final class SpotlightViewModel: ObservableObject {
             guard !job.turns.isEmpty else { return }
             mutate(&job.turns[job.turns.count - 1])
             if isActive {
-                turns = job.turns
+                publishTurnsIfNeeded(job)
             }
         }
 
@@ -766,6 +771,8 @@ final class SpotlightViewModel: ObservableObject {
 
         let isActive = activeJob === job
         if isActive {
+            cancelPendingUIPublish()
+            lastUIUpdateTime = Date()
             turns = job.turns
             isStreaming = false
             streamTask = nil
@@ -786,6 +793,33 @@ final class SpotlightViewModel: ObservableObject {
                 languageCode: job.languageCode
             )
         }
+    }
+
+    private func publishTurnsIfNeeded(_ job: GenerationJob) {
+        guard activeJob === job else { return }
+        let now = Date()
+        let interval = 1.0 / 30.0
+        if now.timeIntervalSince(lastUIUpdateTime) >= interval {
+            cancelPendingUIPublish()
+            lastUIUpdateTime = now
+            turns = job.turns
+            return
+        }
+        guard pendingUIPublish == nil else { return }
+        let delay = max(interval - now.timeIntervalSince(lastUIUpdateTime), 0.001)
+        let work = DispatchWorkItem { [weak self, weak job] in
+            guard let self, let job, self.activeJob === job else { return }
+            self.pendingUIPublish = nil
+            self.lastUIUpdateTime = Date()
+            self.turns = job.turns
+        }
+        pendingUIPublish = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+    }
+
+    private func cancelPendingUIPublish() {
+        pendingUIPublish?.cancel()
+        pendingUIPublish = nil
     }
 
     private func requestScroll(force: Bool = false) {

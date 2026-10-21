@@ -1,8 +1,68 @@
 import Foundation
 import DeepSeekFocusCore
 
+final class MockURLProtocol: URLProtocol {
+    static var statusCode = 200
+    static var payload = Data()
+
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+
+    override func startLoading() {
+        let response = HTTPURLResponse(
+            url: request.url ?? URL(string: "https://mock.local")!,
+            statusCode: Self.statusCode,
+            httpVersion: "HTTP/1.1",
+            headerFields: ["Content-Type": "text/event-stream"]
+        )!
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        client?.urlProtocol(self, didLoad: Self.payload)
+        client?.urlProtocolDidFinishLoading(self)
+    }
+
+    override func stopLoading() {}
+}
+
 @main
 struct CoreChecks {
+    private static func streamEvents(payload: String) -> ([String], Error?) {
+        MockURLProtocol.statusCode = 200
+        MockURLProtocol.payload = Data(payload.utf8)
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [MockURLProtocol.self]
+        let session = URLSession(configuration: configuration)
+        let client = DeepSeekClient(baseURL: URL(string: "https://mock.local")!, session: session)
+        let request = ChatCompletionRequest(
+            model: "deepseek-flash",
+            messages: [.user("hello")],
+            reasoningEffort: "none",
+            tools: nil,
+            maxTokens: 64
+        )
+        let semaphore = DispatchSemaphore(value: 0)
+        var events: [String] = []
+        var failure: Error?
+        Task {
+            do {
+                for try await event in client.streamChat(apiKey: "test-key", requestBody: request) {
+                    switch event {
+                    case .content(let delta):
+                        events.append("content:\(delta)")
+                    case .finished(let reason, _):
+                        events.append("finished:\(reason ?? "nil")")
+                    default:
+                        break
+                    }
+                }
+            } catch {
+                failure = error
+            }
+            semaphore.signal()
+        }
+        _ = semaphore.wait(timeout: .now() + 5)
+        return (events, failure)
+    }
+
     static func main() {
         var failures = 0
 
@@ -25,6 +85,27 @@ struct CoreChecks {
         check(decoder.consume(line: "") == "first\nsecond", "joins multiple data lines")
         _ = decoder.consume(line: "data: trailing")
         check(decoder.finish() == "trailing", "flushes final event")
+
+        print("Stream completion")
+        let completeSSE = """
+        data: {"id":"1","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}
+
+        data: {"id":"1","choices":[{"index":0,"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}
+
+        data: [DONE]
+
+        """
+        let (completeEvents, completeError) = streamEvents(payload: completeSSE)
+        check(completeError == nil, "completed SSE stream has no error")
+        check(completeEvents.contains("content:Hello"), "stream yields content delta")
+        check(completeEvents.contains("finished:stop"), "stream records finish reason")
+
+        let incompleteSSE = """
+        data: {"id":"1","choices":[{"index":0,"delta":{"content":"Partial"},"finish_reason":"length"}]}
+
+        """
+        let (_, incompleteError) = streamEvents(payload: incompleteSSE)
+        check((incompleteError as? DeepSeekError) == .streamIncomplete, "missing [DONE] reports incomplete stream")
 
         print("Tool call aggregation")
         var accumulator = ToolCallAccumulator()
