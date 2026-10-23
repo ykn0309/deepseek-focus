@@ -3,6 +3,7 @@ import SwiftUI
 import DeepSeekFocusCore
 
 struct SpotlightRootView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ObservedObject var model: SpotlightViewModel
     @ObservedObject var settings: AppSettings
     @ObservedObject var modelCatalog: ModelCatalog
@@ -48,6 +49,7 @@ struct SpotlightRootView: View {
         .environment(\.locale, settings.appLanguage.locale)
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.isConversation)
         .animation(.easeInOut(duration: 0.18), value: model.isShowingSettings)
+        .transaction { if reduceMotion { $0.animation = nil } }
         .onExitCommand {
             model.requestHide()
         }
@@ -116,18 +118,19 @@ private struct SearchSurface: View {
             } label: {
                 Image(systemName: "arrow.up")
                     .font(.system(size: 12.5, weight: .bold))
-                    .foregroundStyle(model.input.isEmpty ? Color.primary.opacity(0.34) : .white)
+                    .foregroundStyle(!model.canSend ? Color.primary.opacity(0.34) : .white)
                     .frame(width: 30, height: 30)
                     .background {
                         Circle()
-                            .fill(model.input.isEmpty
+                            .fill(!model.canSend
                                   ? AnyShapeStyle(Color.primary.opacity(0.055))
                                   : AnyShapeStyle(FocusTheme.accentGradient))
                     }
             }
             .buttonStyle(.plain)
-            .disabled(model.input.isEmpty)
+            .disabled(!model.canSend)
             .help("发送（Return）")
+            .accessibilityLabel("发送")
             .transition(.scale(scale: 0.85).combined(with: .opacity))
         }
         .padding(.horizontal, 22)
@@ -138,7 +141,7 @@ private struct SearchSurface: View {
         .onAppear { scheduleFocus() }
         .onChange(of: model.focusToken) { _ in scheduleFocus() }
         .onChange(of: model.sessionConfiguration) { _ in scheduleFocus() }
-        .animation(.easeOut(duration: 0.14), value: model.input.isEmpty)
+        .animation(.easeOut(duration: 0.14), value: !model.canSend)
     }
 
     private func scheduleFocus() {
@@ -309,7 +312,7 @@ private struct ConversationSurface: View {
 
     private var conversation: some View {
         ScrollViewReader { proxy in
-            ScrollView(.vertical, showsIndicators: false) {
+            ScrollView(.vertical, showsIndicators: true) {
                 LazyVStack(alignment: .leading, spacing: 28) {
                     ForEach(model.turns) { turn in
                         TurnView(turn: turn, model: model)
@@ -318,6 +321,8 @@ private struct ConversationSurface: View {
                         .frame(height: 1)
                         .id("conversation-bottom")
                 }
+                .frame(maxWidth: 820)
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, 24)
                 .padding(.top, 22)
                 .padding(.bottom, 14)
@@ -333,9 +338,8 @@ private struct ConversationSurface: View {
             .onChange(of: model.scrollTick) { _ in
                 guard isAtBottom else { return }
                 DispatchQueue.main.async {
-                    withAnimation(.easeOut(duration: 0.15)) {
-                        proxy.scrollTo("conversation-bottom", anchor: .bottom)
-                    }
+                    // Frequent token updates should not queue overlapping animations.
+                    proxy.scrollTo("conversation-bottom", anchor: .bottom)
                 }
             }
             .onChange(of: model.currentSessionID) { _ in
@@ -397,11 +401,32 @@ private struct ConversationSurface: View {
                     .foregroundStyle(.primary.opacity(0.86))
                 Text(L10n.string("在下方输入你的问题。"))
                     .font(.system(size: 11.5))
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.secondary)
             }
+            HStack(spacing: 8) {
+                suggestion("解释一个概念", symbol: "lightbulb", prompt: "请用一个具体例子解释：")
+                suggestion("润色一段文字", symbol: "pencil.line", prompt: "请帮我润色以下文字，保留原意：\n")
+            }
+            Text("Return 发送 · Shift + Return 换行")
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, 28)
+    }
+
+    private func suggestion(_ title: String, symbol: String, prompt: String) -> some View {
+        Button {
+            model.input = L10n.string(prompt)
+            model.requestFocus()
+        } label: {
+            Label(L10n.string(title), systemImage: symbol)
+                .font(.system(size: 12))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 9))
+        }
+        .buttonStyle(.plain)
     }
 
     private var composer: some View {
@@ -438,6 +463,7 @@ private struct ConversationSurface: View {
                 .buttonStyle(.plain)
                 .disabled(!model.isStreaming && !model.canSend)
                 .help(model.isStreaming ? "停止生成" : "发送（Return）")
+                .accessibilityLabel(model.isStreaming ? L10n.string("停止生成") : L10n.string("发送"))
             }
             .padding(.leading, 12)
             .padding(.trailing, 7)
@@ -463,6 +489,11 @@ private struct ConversationSurface: View {
                 )
 
                 Spacer(minLength: 8)
+                Text(model.isStreaming ? L10n.string("生成中，可先写下一条消息") : L10n.string("⇧↩ 换行"))
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .help("Return 发送 · Shift + Return 换行")
             }
             .padding(.horizontal, 4)
         }
@@ -570,6 +601,7 @@ private struct ScrollBottomObserver: NSViewRepresentable {
 private struct TurnView: View {
     let turn: ConversationTurn
     @ObservedObject var model: SpotlightViewModel
+    @State private var copied = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -654,6 +686,26 @@ private struct TurnView: View {
                     SourcesView(sources: turn.sources)
                 }
 
+                if !turn.isStreaming, !turn.answer.isEmpty {
+                    Button {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(turn.answer, forType: .string)
+                        copied = true
+                    } label: {
+                        Label(copied ? L10n.string("已复制") : L10n.string("复制回答"),
+                              systemImage: copied ? "checkmark" : "doc.on.doc")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .task(id: copied) {
+                        guard copied else { return }
+                        do { try await Task.sleep(nanoseconds: 2_000_000_000) }
+                        catch { return }
+                        copied = false
+                    }
+                }
+
                 if turn.wasStopped {
                     HStack(spacing: 5) {
                         Image(systemName: "stop.circle")
@@ -721,7 +773,7 @@ private struct ReasoningView: View {
             .buttonStyle(.plain)
 
             if expanded {
-                ScrollView(.vertical, showsIndicators: false) {
+                ScrollView(.vertical, showsIndicators: true) {
                     Text(turn.reasoning)
                         .font(.system(size: 11.5))
                         .foregroundStyle(.secondary.opacity(0.9))

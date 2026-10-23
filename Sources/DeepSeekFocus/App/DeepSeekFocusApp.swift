@@ -10,6 +10,12 @@ enum DeepSeekFocusMain {
     @MainActor
     static func main() {
         let application = NSApplication.shared
+        #if DEBUG
+        if CommandLine.arguments.contains("--experience-checks") || CommandLine.arguments.contains("--experience-preview") {
+            ExperienceChecks.run(application: application)
+            return
+        }
+        #endif
         let delegate = AppDelegate()
         retainedDelegate = delegate
         application.delegate = delegate

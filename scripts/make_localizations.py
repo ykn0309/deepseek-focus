@@ -2,6 +2,26 @@
 from pathlib import Path
 
 T = {
+"未能读取选中文字": "Could not read selected text",
+"快捷键已触发。请先选中文字再重试；若应用不提供选区接口，请在设置中开启「选区兼容模式」。安全输入或密码框不支持读取。": "The shortcut was received. Select text and try again. Enable Selection compatibility mode in Settings for apps without selection APIs. Secure input and password fields are unsupported.",
+"好": "OK",
+"已复制": "Copied",
+"在展开页中显示或隐藏历史侧边栏": "Show or hide history in the expanded chat",
+"发送": "Send",
+"复制回答": "Copy answer",
+"当前会话": "Current conversation",
+"删除此会话？": "Delete this conversation?",
+"将永久删除「%@」及其所有消息。": "“%@” and all its messages will be permanently deleted.",
+"API Key 优先保存在 macOS 钥匙串中；不可用时回退到本机受保护文件。请求直接发送给 DeepSeek。": "Your API key is stored in macOS Keychain, with a protected local file as fallback. Requests go directly to DeepSeek.",
+"历史记录保存失败。请检查磁盘空间与文件权限；当前对话仍保留在内存中。": "History could not be saved. Check disk space and file permissions. Your conversation is still in memory.",
+"解释一个概念": "Explain a concept",
+"润色一段文字": "Polish some writing",
+"请用一个具体例子解释：": "Please explain with a concrete example: ",
+"请帮我润色以下文字，保留原意：\n": "Please polish this text while preserving its meaning:\n",
+"Return 发送 · Shift + Return 换行": "Return to send · Shift + Return for a new line",
+"生成中，可先写下一条消息": "Generating · you can draft your next message",
+"⇧↩ 换行": "⇧↩ New line",
+
 # App / menus / about
 "DeepSeek 聚焦": "DeepSeek Focus",
 "关于 DeepSeek 聚焦": "About DeepSeek Focus",
@@ -101,8 +121,8 @@ T = {
 "这个快捷键已被选区快捷操作占用，请换一个。": "This shortcut is already used for selection actions. Choose another.",
 "选区快捷操作": "Selection actions",
 "启用选区快捷操作": "Enable selection actions",
-"Chrome 兼容模式": "Chrome compatibility mode",
-"通过临时复制读取 Chrome 等浏览器的选中文字，并尽量恢复原来的剪贴板。": "Read selected text from Chrome and other browsers via a temporary copy, then restore your clipboard when possible.",
+"选区兼容模式": "Selection compatibility mode",
+"选区接口不可用时，通过临时复制读取浏览器、PDF 和其他应用中的文字，并尽量恢复剪贴板。": "Use a temporary copy when selection APIs are unavailable in browsers, PDF readers and other apps, then restore the clipboard when possible.",
 "关闭后，选区快捷键不会弹出快捷栏。": "When off, the selection shortcut will not open the quick action bar.",
 "选中文字后按快捷键显示快捷栏；翻译和查词默认关闭思考，问 DeepSeek 默认开启联网搜索。": "Press the shortcut after selecting text to show the quick action bar. Translation and Look up start with thinking off; Ask DeepSeek starts with web search on.",
 "模型": "Model",

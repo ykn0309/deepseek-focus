@@ -12,7 +12,7 @@ final class SelectionActionPanelController {
     private var clickMonitor: Any?
     private var keyMonitor: Any?
 
-    private let panelSize = NSSize(width: 300, height: 36)
+    private var panelSize = NSSize(width: 230, height: 34)
 
     func show(text: String, near anchor: NSPoint) {
         currentText = text
@@ -53,7 +53,7 @@ final class SelectionActionPanelController {
         panel.hidesOnDeactivate = true
         panel.isReleasedWhenClosed = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
-        panel.contentView = NSHostingView(
+        let hostingView = NSHostingView(
             rootView: SelectionActionBar { [weak self] action in
                 guard let self else { return }
                 let text = self.currentText
@@ -62,6 +62,9 @@ final class SelectionActionPanelController {
                 self.onSelect?(text, action, anchor)
             }
         )
+        panelSize = hostingView.fittingSize
+        panel.contentView = hostingView
+        panel.setContentSize(panelSize)
         self.panel = panel
         return panel
     }

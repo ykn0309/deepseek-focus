@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import DeepSeekFocusCore
 
 enum FocusTheme {
     static let accent = Color(red: 0.30, green: 0.42, blue: 0.996)
@@ -50,24 +51,22 @@ struct VisualEffectBackground: NSViewRepresentable {
 struct FocusPanelBackground: View {
     var cornerRadius: CGFloat
     var prominentShadow = false
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         ZStack {
-            VisualEffectBackground(material: .popover, blendingMode: .behindWindow)
-            if colorScheme == .dark {
-                Color.black.opacity(0.22)
-                Color.white.opacity(0.07)
-            } else {
-                Color.white.opacity(0.86)
-                Color.black.opacity(0.02)
+            if !reduceTransparency {
+                VisualEffectBackground(material: .popover, blendingMode: .behindWindow)
             }
+            Color(nsColor: .windowBackgroundColor)
+                .opacity(reduceTransparency ? 1 : (colorScheme == .dark ? 0.94 : 0.92))
         }
         .clipShape(shape)
         .overlay {
             shape.strokeBorder(
-                Color.black.opacity(colorScheme == .dark ? 0.55 : 0.24),
+                Color.primary.opacity(colorScheme == .dark ? 0.24 : 0.16),
                 lineWidth: 0.95
             )
         }
@@ -175,12 +174,13 @@ struct FocusIconButton: View {
         }
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
-        .help(help)
-        .accessibilityLabel(help)
+        .help(L10n.string(help))
+        .accessibilityLabel(L10n.string(help))
     }
 }
 
 struct ThinkingDots: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var animating = false
 
     var body: some View {
@@ -192,7 +192,7 @@ struct ThinkingDots: View {
                     .scaleEffect(animating ? 1.0 : 0.55)
                     .opacity(animating ? 1 : 0.35)
                     .animation(
-                        .easeInOut(duration: 0.62)
+                        reduceMotion ? nil : .easeInOut(duration: 0.62)
                             .repeatForever(autoreverses: true)
                             .delay(Double(index) * 0.13),
                         value: animating

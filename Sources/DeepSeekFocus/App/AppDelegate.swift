@@ -13,6 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var selectionResultPanelController: SelectionResultPanelController!
     private var statusItem: NSStatusItem!
     private var statusMenu: NSMenu?
+    private var selectionReadTask: Task<Void, Never>?
     private var statusShortcutInfoItem: NSMenuItem?
     private var statusCheckUpdateItem: NSMenuItem?
     private let updateChecker = UpdateChecker.shared
@@ -142,13 +143,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             presentAccessibilityAlert()
             return
         }
-        guard let context = SelectionReader.read(
-            allowClipboardFallback: settings.selectionClipboardFallbackEnabled
-        ) else {
-            NSSound.beep()
-            return
+        guard selectionReadTask == nil else { return }
+        selectionReadTask = Task { [weak self] in
+            guard let self else { return }
+            defer { self.selectionReadTask = nil }
+            guard let context = await SelectionReader.read(
+                allowClipboardFallback: self.settings.selectionClipboardFallbackEnabled
+            ) else {
+                let alert = NSAlert()
+                alert.messageText = L10n.string("未能读取选中文字")
+                alert.informativeText = L10n.string("快捷键已触发。请先选中文字再重试；若应用不提供选区接口，请在设置中开启「选区兼容模式」。安全输入或密码框不支持读取。")
+                alert.addButton(withTitle: L10n.string("好"))
+                NSApp.activate(ignoringOtherApps: true)
+                alert.runModal()
+                return
+            }
+            self.selectionPanelController.show(text: context.text, near: context.anchor)
         }
-        selectionPanelController.show(text: context.text, near: context.anchor)
     }
 
     private func presentAccessibilityAlert() {

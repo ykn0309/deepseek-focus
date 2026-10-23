@@ -22,6 +22,7 @@ struct ConversationSession: Codable, Identifiable {
 final class ConversationHistoryStore: ObservableObject {
     @Published private(set) var sessions: [ConversationSession] = []
     @Published private(set) var recoveryMessage: String?
+    @Published private(set) var saveError: String?
 
     private let fileURL: URL
     private let backupURL: URL
@@ -146,8 +147,9 @@ final class ConversationHistoryStore: ObservableObject {
                 [.posixPermissions: 0o600],
                 ofItemAtPath: fileURL.path
             )
+            saveError = nil
         } catch {
-            // History persistence is best-effort; a failed write should never block chatting.
+            saveError = L10n.string("历史记录保存失败。请检查磁盘空间与文件权限；当前对话仍保留在内存中。")
         }
     }
 }

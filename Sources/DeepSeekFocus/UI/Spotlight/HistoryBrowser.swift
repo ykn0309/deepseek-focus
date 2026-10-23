@@ -1,4 +1,5 @@
 import SwiftUI
+import DeepSeekFocusCore
 
 struct HistoryBrowser: View {
     @ObservedObject var history: ConversationHistoryStore
@@ -10,6 +11,7 @@ struct HistoryBrowser: View {
     var onRename: (ConversationSession, String) -> Void
 
     @State private var query = ""
+    @FocusState private var searchFocused: Bool
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -17,7 +19,7 @@ struct HistoryBrowser: View {
             newConversationButton
             searchField
                 .padding(.top, 9)
-            if let recoveryMessage = history.recoveryMessage {
+            if let recoveryMessage = history.saveError ?? history.recoveryMessage {
                 HStack(alignment: .top, spacing: 6) {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.system(size: 9.5))
@@ -35,6 +37,11 @@ struct HistoryBrowser: View {
             content
                 .padding(.top, 5)
         }
+        .background {
+            Button("搜索历史会话") { searchFocused = true }
+                .keyboardShortcut("f", modifiers: .command)
+                .hidden()
+        }
         .padding(.horizontal, 13)
         .padding(.top, 12)
         .padding(.bottom, 10)
@@ -46,7 +53,10 @@ struct HistoryBrowser: View {
         guard !needle.isEmpty else { return history.sessions }
         return history.sessions.filter { session in
             session.title.localizedCaseInsensitiveContains(needle)
-                || session.turns.contains { $0.question.localizedCaseInsensitiveContains(needle) }
+                || session.turns.contains {
+                    $0.question.localizedCaseInsensitiveContains(needle)
+                        || $0.answer.localizedCaseInsensitiveContains(needle)
+                }
         }
     }
 
@@ -87,7 +97,9 @@ struct HistoryBrowser: View {
                 .foregroundStyle(.tertiary)
             TextField("搜索历史会话", text: $query)
                 .textFieldStyle(.plain)
-                .font(.system(size: 10.5))
+                .focused($searchFocused)
+                .accessibilityLabel("搜索历史会话")
+                .font(.system(size: 12))
                 .foregroundStyle(.primary.opacity(0.82))
             if !query.isEmpty {
                 Button {
@@ -101,6 +113,7 @@ struct HistoryBrowser: View {
                 .focusable(false)
                 .withoutFocusRing()
                 .help("清除搜索")
+                .accessibilityLabel("清除搜索")
             }
         }
         .padding(.horizontal, 9)
@@ -128,7 +141,7 @@ struct HistoryBrowser: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            ScrollView(.vertical, showsIndicators: false) {
+            ScrollView(.vertical, showsIndicators: true) {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     ForEach(sections) { section in
                         Text(LocalizedStringKey(section.title))
@@ -205,6 +218,7 @@ private struct HistorySessionRow: View {
     @State private var isRenaming = false
     @State private var draftTitle = ""
     @State private var forceMenuVisible = false
+    @State private var confirmingDelete = false
     @FocusState private var renameFocused: Bool
 
     var body: some View {
@@ -216,6 +230,16 @@ private struct HistorySessionRow: View {
             }
         }
         .onHover { hovering = $0 }
+        .contextMenu {
+            Button("重命名") { beginRenaming() }
+            Button("删除", role: .destructive) { confirmingDelete = true }
+        }
+        .alert("删除此会话？", isPresented: $confirmingDelete) {
+            Button("取消", role: .cancel) { }
+            Button("删除", role: .destructive) { onDelete() }
+        } message: {
+            Text(L10n.format("将永久删除「%@」及其所有消息。", session.title))
+        }
     }
 
     private var normalRow: some View {
@@ -255,6 +279,8 @@ private struct HistorySessionRow: View {
             }
             .buttonStyle(.plain)
             .withoutFocusRing()
+            .help(session.title)
+            .accessibilityValue(isCurrent ? L10n.string("当前会话") : "")
 
             if hovering || isCurrent || forceMenuVisible {
                 Menu {
@@ -265,7 +291,7 @@ private struct HistorySessionRow: View {
                     }
 
                     Button(role: .destructive) {
-                        onDelete()
+                        confirmingDelete = true
                     } label: {
                         Label("删除", systemImage: "trash")
                     }
@@ -296,6 +322,8 @@ private struct HistorySessionRow: View {
                 .font(.system(size: 12.5))
                 .focused($renameFocused)
                 .onSubmit { commitRename() }
+                .onExitCommand { isRenaming = false }
+                .accessibilityLabel("重命名")
                 .padding(.horizontal, 6)
                 .padding(.vertical, 5)
                 .background {

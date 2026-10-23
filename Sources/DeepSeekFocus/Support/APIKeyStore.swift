@@ -32,7 +32,6 @@ struct APIKeyStore {
             // Keep using a legacy file without prompting for Keychain access
             // at launch. New or edited keys are written to the Keychain.
             return try readLegacyFile()
-            return nil
         }
         return try readLegacyFile()
     }

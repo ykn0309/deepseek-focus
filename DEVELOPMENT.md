@@ -136,3 +136,26 @@ The checksum and code-signature checks protect against corrupt or partially down
 ## Contributing
 
 Issues and pull requests are welcome. Run the checks above before submitting. Do not commit API keys, local history under `~/Library/Application Support/DeepSeekFocus`, or screenshots containing personal conversations.
+
+## Experience regression checks and isolated preview
+
+The debug executable has synthetic-data checks for session drafts, blank input,
+history persistence, stopped-state restoration, deletion, and visible write errors:
+
+```bash
+SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk swift run DeepSeekFocus --experience-checks
+./scripts/preview_experience.sh
+./scripts/preview_experience.sh --dark --english --empty
+./scripts/preview_experience.sh --settings
+```
+
+The preview uses a temporary history directory, an isolated UserDefaults suite and
+no real API key. It does not register global shortcuts or install the app. These
+entry points are excluded from release builds. Sample messages remain Chinese in
+the English preview deliberately: interface language must not translate history.
+
+Session drafts survive switching between history rows during the current process;
+they are not persisted across app restarts. History search includes answers.
+Command-F focuses history search when the sidebar is visible. Deletion asks for
+confirmation, and Escape cancels inline renaming. The composer grows to 132 points
+before scrolling. Copy-answer actions preserve the original Markdown.

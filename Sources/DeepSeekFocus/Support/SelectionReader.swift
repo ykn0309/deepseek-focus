@@ -1,5 +1,6 @@
 import AppKit
 import ApplicationServices
+import Carbon.HIToolbox
 
 struct SelectionContext {
     let text: String
@@ -7,15 +8,17 @@ struct SelectionContext {
 }
 
 enum SelectionReader {
-    static func read(allowClipboardFallback: Bool = true) -> SelectionContext? {
+    @MainActor
+    static func read(allowClipboardFallback: Bool = true) async -> SelectionContext? {
+        guard !IsSecureEventInputEnabled(), !isSecureFieldFocused() else { return nil }
         if let context = readFromAccessibility() {
             return context
         }
-        // Some Chromium-based apps do not expose the selected text through the
+        // Some browsers, PDF viewers and Electron apps do not expose selection through the
         // Accessibility API. Fall back to a transient Cmd-C, then restore the
         // previous clipboard contents only if nobody else changed it meanwhile.
-        guard allowClipboardFallback, isChromiumFrontmost() else { return nil }
-        guard let copied = copySelectedTextViaClipboard() else { return nil }
+        guard allowClipboardFallback else { return nil }
+        guard let copied = await copySelectedTextViaClipboard() else { return nil }
         let text = copied.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return nil }
         return SelectionContext(text: String(text.prefix(12_000)), anchor: mouseAnchor())
@@ -104,25 +107,30 @@ enum SelectionReader {
         var items: [[NSPasteboard.PasteboardType: Data]]
     }
 
-    private static let chromiumBundleIdentifiers: Set<String> = [
-        "com.google.Chrome",
-        "com.google.Chrome.canary",
-        "com.microsoft.edgemac",
-        "com.brave.Browser",
-        "company.thebrowser.Browser",
-        "org.chromium.Chromium",
-        "com.vivaldi.Vivaldi",
-        "com.operasoftware.Opera"
-    ]
-
-    private static func isChromiumFrontmost() -> Bool {
-        guard let identifier = NSWorkspace.shared.frontmostApplication?.bundleIdentifier else {
-            return false
-        }
-        return chromiumBundleIdentifiers.contains(identifier)
+    private static func isSecureFieldFocused() -> Bool {
+        var focused: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(AXUIElementCreateSystemWide(),
+            kAXFocusedUIElementAttribute as CFString, &focused) == .success,
+            let focused else { return false }
+        var subrole: CFTypeRef?
+        _ = AXUIElementCopyAttributeValue(focused as! AXUIElement,
+            kAXSubroleAttribute as CFString, &subrole)
+        return subrole as? String == kAXSecureTextFieldSubrole as String
     }
 
-    private static func copySelectedTextViaClipboard() -> String? {
+    @MainActor
+    private static func copySelectedTextViaClipboard() async -> String? {
+        guard let app = NSWorkspace.shared.frontmostApplication else { return nil }
+        let pid = app.processIdentifier
+        // A held Option key can turn the injected Cmd-C into Option-Cmd-C.
+        // Yield while waiting so the app and the source can keep processing input.
+        let releaseDeadline = Date().addingTimeInterval(1.5)
+        while !NSEvent.modifierFlags.intersection([.option, .control, .shift, .command]).isEmpty {
+            guard Date() < releaseDeadline, !Task.isCancelled else { return nil }
+            try? await Task.sleep(nanoseconds: 20_000_000)
+        }
+        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid,
+              !IsSecureEventInputEnabled(), !isSecureFieldFocused() else { return nil }
         let pasteboard = NSPasteboard.general
         let before = pasteboard.changeCount
         let snapshot = snapshot(of: pasteboard)
@@ -135,13 +143,14 @@ enum SelectionReader {
         down.flags = .maskCommand
         up.flags = .maskCommand
         down.post(tap: .cghidEventTap)
-        usleep(50_000)
         up.post(tap: .cghidEventTap)
 
         var observedChange: Int?
         var copiedText: String?
-        let deadline = Date().addingTimeInterval(0.55)
+        let deadline = Date().addingTimeInterval(0.8)
         while Date() < deadline {
+            guard !Task.isCancelled,
+                  NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else { break }
             let change = pasteboard.changeCount
             if change != before {
                 observedChange = change
@@ -150,7 +159,7 @@ enum SelectionReader {
                     break
                 }
             }
-            usleep(20_000)
+            try? await Task.sleep(nanoseconds: 20_000_000)
         }
 
         // Only restore when the pasteboard still contains the temporary copy.

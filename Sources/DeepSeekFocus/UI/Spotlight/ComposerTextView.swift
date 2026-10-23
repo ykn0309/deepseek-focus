@@ -19,7 +19,8 @@ struct ComposerTextView: NSViewRepresentable {
         let scrollView = ComposerScrollView()
         scrollView.drawsBackground = false
         scrollView.borderType = .noBorder
-        scrollView.hasVerticalScroller = false
+        scrollView.hasVerticalScroller = true
+        scrollView.scrollerStyle = .overlay
         scrollView.hasHorizontalScroller = false
         scrollView.autohidesScrollers = true
         scrollView.verticalScrollElasticity = .none
@@ -59,6 +60,7 @@ struct ComposerTextView: NSViewRepresentable {
         textView.textColor = .labelColor
         textView.typingAttributes = attributes
         textView.placeholder = placeholder
+        textView.setAccessibilityLabel(placeholder)
         textView.string = text
         if !text.isEmpty {
             textView.textStorage?.setAttributes(attributes, range: NSRange(location: 0, length: textView.string.utf16.count))
@@ -84,6 +86,7 @@ struct ComposerTextView: NSViewRepresentable {
         context.coordinator.parent = self
         guard let textView = scrollView.composerTextView else { return }
         textView.placeholder = placeholder
+        textView.setAccessibilityLabel(placeholder)
         scrollView.onHeightChange = { [weak coordinator = context.coordinator] newHeight in
             coordinator?.reportHeight(newHeight)
         }
@@ -135,7 +138,7 @@ struct ComposerTextView: NSViewRepresentable {
         }
 
         func reportHeight(_ height: CGFloat) {
-            let clamped = min(max(height, 24), 82)
+            let clamped = min(max(height, 24), 132)
             guard abs(parent.height - clamped) > 0.5 else { return }
             DispatchQueue.main.async { [weak self] in
                 guard let self, abs(self.parent.height - clamped) > 0.5 else { return }
@@ -179,7 +182,7 @@ final class ComposerScrollView: NSScrollView {
         layoutManager.ensureLayout(for: container)
         let used = layoutManager.usedRect(for: container).height
         let contentHeight = ceil(used + textView.textContainerInset.height * 2 + 2)
-        let desiredVisibleHeight = min(max(contentHeight, 24), 82)
+        let desiredVisibleHeight = min(max(contentHeight, 24), 132)
         let desiredDocumentHeight = max(contentSize.height, contentHeight)
         let newFrame = NSRect(x: 0, y: 0, width: width, height: desiredDocumentHeight)
         if textView.frame != newFrame {

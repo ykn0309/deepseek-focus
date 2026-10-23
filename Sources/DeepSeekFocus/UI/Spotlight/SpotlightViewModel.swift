@@ -109,6 +109,14 @@ final class SpotlightViewModel: ObservableObject {
     private var currentSessionTitleGenerated = false
     private var currentSessionLanguageCode: String
     private var settingsReturnToHistory = false
+    // Drafts are session-local and stay in memory, never sent until Return.
+    private var sessionDrafts: [UUID: String] = [:]
+    private var newSessionDraft = ""
+
+    private func rememberDraft() {
+        if let id = currentSessionID { sessionDrafts[id] = input }
+        else { newSessionDraft = input }
+    }
 
     init(settings: AppSettings, modelCatalog: ModelCatalog, historyStore: ConversationHistoryStore) {
         self.settings = settings
@@ -161,7 +169,9 @@ final class SpotlightViewModel: ObservableObject {
             turn.errorMessage = DeepSeekError.missingAPIKey.errorDescription
             turn.needsSetup = true
         }
+        if currentSessionID == nil { newSessionDraft = "" }
         ensureSessionIdentity()
+        if let id = currentSessionID { sessionDrafts.removeValue(forKey: id) }
         turns.append(turn)
         input = ""
         focusToken &+= 1
@@ -250,6 +260,7 @@ final class SpotlightViewModel: ObservableObject {
     }
 
     func beginFreshInvocation() {
+        rememberDraft()
         cancelPendingUIPublish()
         persistCurrentSessionIfNeeded()
         activeJob = nil
@@ -272,13 +283,14 @@ final class SpotlightViewModel: ObservableObject {
     }
 
     func newConversation() {
+        rememberDraft()
         cancelPendingUIPublish()
         persistCurrentSessionIfNeeded()
         activeJob = nil
         streamTask = nil
         engine = ConversationEngine()
         turns = []
-        input = ""
+        input = newSessionDraft
         isStreaming = false
         // Starting a new chat from the expanded page stays expanded. The new
         // session gets a fresh composer instead of collapsing to the initial bar.
@@ -326,6 +338,8 @@ final class SpotlightViewModel: ObservableObject {
     }
 
     func loadHistorySession(_ session: ConversationSession) {
+        guard currentSessionID != session.id else { requestFocus(); return }
+        rememberDraft()
         cancelPendingUIPublish()
         if currentSessionID != session.id {
             persistCurrentSessionIfNeeded()
@@ -339,7 +353,7 @@ final class SpotlightViewModel: ObservableObject {
             turns = job.turns
             isStreaming = job.isStreaming
             streamTask = job.task
-            input = ""
+            input = sessionDrafts[session.id] ?? ""
             isConversation = !job.turns.isEmpty
             currentSessionID = job.id
             currentSessionCreatedAt = job.createdAt
@@ -356,13 +370,12 @@ final class SpotlightViewModel: ObservableObject {
         let restoredTurns = session.turns.map { stored -> ConversationTurn in
             var turn = stored
             turn.isStreaming = false
-            turn.wasStopped = false
             return turn
         }
         turns = restoredTurns
         engine = ConversationEngine(messages: session.apiMessages)
         isStreaming = false
-        input = ""
+        input = sessionDrafts[session.id] ?? ""
         isConversation = !restoredTurns.isEmpty
         currentSessionID = session.id
         currentSessionCreatedAt = session.createdAt
@@ -376,6 +389,8 @@ final class SpotlightViewModel: ObservableObject {
     }
 
     func clearHistory() {
+        sessionDrafts.removeAll()
+        newSessionDraft = ""
         for job in backgroundJobs.values {
             job.task?.cancel()
         }
@@ -491,6 +506,7 @@ final class SpotlightViewModel: ObservableObject {
     }
 
     func deleteHistorySession(_ session: ConversationSession) {
+        sessionDrafts.removeValue(forKey: session.id)
         if let job = backgroundJobs.removeValue(forKey: session.id) {
             job.task?.cancel()
             generatingSessionIDs.remove(job.id)

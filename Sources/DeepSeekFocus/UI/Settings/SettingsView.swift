@@ -27,11 +27,11 @@ struct SettingsView: View {
 
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 16) {
-                    updateSection
                     connectionSection
-                    behaviorSection
                     modelSection
+                    behaviorSection
                     selectionSection
+                    updateSection
                     privacyNote
                 }
                 .padding(.horizontal, 26)
@@ -88,7 +88,7 @@ struct SettingsView: View {
     private var connectionSection: some View {
         SettingsSection(
             title: "连接 DeepSeek",
-            subtitle: "API Key 仅保存在这台 Mac 的应用数据目录中（文件权限 600，不使用系统钥匙串），并直接从本机发送给 DeepSeek。",
+            subtitle: "API Key 优先保存在 macOS 钥匙串中；不可用时回退到本机受保护文件。请求直接发送给 DeepSeek。",
             icon: "bolt.horizontal.circle"
         ) {
             VStack(alignment: .leading, spacing: 10) {
@@ -363,9 +363,9 @@ struct SettingsView: View {
 
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Chrome 兼容模式")
+                        Text("选区兼容模式")
                             .font(.system(size: 11.5, weight: .medium))
-                        Text("通过临时复制读取 Chrome 等浏览器的选中文字，并尽量恢复原来的剪贴板。")
+                        Text("选区接口不可用时，通过临时复制读取浏览器、PDF 和其他应用中的文字，并尽量恢复剪贴板。")
                             .font(.system(size: 10))
                             .foregroundStyle(.tertiary)
                             .fixedSize(horizontal: false, vertical: true)

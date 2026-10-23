@@ -3,71 +3,49 @@ import DeepSeekFocusCore
 
 struct SelectionActionBar: View {
     var onSelect: (SelectionAction) -> Void
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         HStack(spacing: 2) {
-            SelectionBarButton(
-                title: "问 DeepSeek",
-                icon: "sparkles",
-                action: { onSelect(.ask) }
-            )
-
-            Divider()
-                .frame(height: 14)
-                .opacity(0.55)
-
-            SelectionBarButton(
-                title: "翻译",
-                icon: "character.bubble",
-                action: { onSelect(.translate) }
-            )
-
-            Divider()
-                .frame(height: 14)
-                .opacity(0.55)
-
-            SelectionBarButton(
-                title: "查词",
-                icon: "book.closed",
-                action: { onSelect(.dictionary) }
-            )
+            SelectionBarButton(title: "问 DeepSeek", primary: true) { onSelect(.ask) }
+            Rectangle()
+                .fill(Color.primary.opacity(0.10))
+                .frame(width: 1, height: 12)
+                .padding(.horizontal, 3)
+                .accessibilityHidden(true)
+            SelectionBarButton(title: "翻译") { onSelect(.translate) }
+            SelectionBarButton(title: "查词") { onSelect(.dictionary) }
         }
         .padding(4)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(Color(nsColor: .windowBackgroundColor),
+                    in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.10), lineWidth: 0.8)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(Color.primary.opacity(colorScheme == .dark ? 0.16 : 0.10), lineWidth: 0.5)
         }
-        .shadow(color: .black.opacity(0.18), radius: 14, y: 5)
         .fixedSize()
     }
 }
 
 private struct SelectionBarButton: View {
     let title: LocalizedStringKey
-    let icon: String
+    var primary = false
     let action: () -> Void
-
     @State private var isHovering = false
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 5) {
-                Image(systemName: icon)
-                    .font(.system(size: 10, weight: .medium))
-                Text(title)
-                    .font(.system(size: 11, weight: .medium))
-            }
-            .foregroundStyle(.primary.opacity(0.82))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
-            .background(
-                Color.primary.opacity(isHovering ? 0.075 : 0),
-                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
-            )
-            .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            Text(title)
+                .font(.system(size: 12, weight: primary ? .medium : .regular))
+                .foregroundStyle(primary ? FocusTheme.accent : Color.primary.opacity(0.85))
+                .padding(.horizontal, 10)
+                .frame(height: 26)
+                .background(Color.primary.opacity(isHovering ? 0.07 : 0),
+                            in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .contentShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
         }
         .buttonStyle(.plain)
+        .withoutFocusRing()
         .onHover { isHovering = $0 }
     }
 }
