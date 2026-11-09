@@ -124,7 +124,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidResignActive(_ notification: Notification) {
-        panelController?.hide()
+        panelController?.hideOnDeactivate()
         selectionPanelController?.hide()
         selectionResultPanelController?.hide()
     }
@@ -178,7 +178,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        panelController?.showFresh()
+        if panelController.isVisible {
+            panelController.bringToFront()
+        } else {
+            panelController.showFresh()
+        }
         return true
     }
 

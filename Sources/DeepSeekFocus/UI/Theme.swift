@@ -19,7 +19,7 @@ enum FocusTheme {
 }
 
 enum SpotlightMetrics {
-    static let shadowInset: CGFloat = 48
+    static let shadowInset: CGFloat = 24
     static let initialVisualWidth: CGFloat = 860
     static let initialVisualHeight: CGFloat = 68
     static let expandedVisualWidth: CGFloat = 900
@@ -51,6 +51,7 @@ struct VisualEffectBackground: NSViewRepresentable {
 struct FocusPanelBackground: View {
     var cornerRadius: CGFloat
     var prominentShadow = false
+    var usesFloatingDecoration = true
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorScheme) private var colorScheme
 
@@ -65,33 +66,37 @@ struct FocusPanelBackground: View {
         }
         .clipShape(shape)
         .overlay {
-            shape.strokeBorder(
-                Color.primary.opacity(colorScheme == .dark ? 0.24 : 0.16),
-                lineWidth: 0.95
-            )
+            if usesFloatingDecoration {
+                shape.strokeBorder(
+                    Color.primary.opacity(colorScheme == .dark ? 0.24 : 0.16),
+                    lineWidth: 0.95
+                )
+            }
         }
         .overlay {
-            shape.inset(by: 1.0)
-                .strokeBorder(
-                    Color.white.opacity(colorScheme == .dark ? 0.12 : 0.46),
-                    lineWidth: 0.75
-                )
+            if usesFloatingDecoration {
+                shape.inset(by: 1.0)
+                    .strokeBorder(
+                        Color.white.opacity(colorScheme == .dark ? 0.12 : 0.46),
+                        lineWidth: 0.75
+                    )
+            }
         }
         .shadow(
-            color: .black.opacity(colorScheme == .dark
+            color: usesFloatingDecoration ? .black.opacity(colorScheme == .dark
                                   ? (prominentShadow ? 0.30 : 0.26)
-                                  : (prominentShadow ? 0.10 : 0.06)),
-            radius: prominentShadow ? 3 : 2,
+                                  : (prominentShadow ? 0.10 : 0.06)) : .clear,
+            radius: usesFloatingDecoration ? (prominentShadow ? 3 : 2) : 0,
             x: 0,
-            y: 1
+            y: usesFloatingDecoration ? 1 : 0
         )
         .shadow(
-            color: .black.opacity(colorScheme == .dark
+            color: usesFloatingDecoration ? .black.opacity(colorScheme == .dark
                                   ? (prominentShadow ? 0.40 : 0.34)
-                                  : (prominentShadow ? 0.20 : 0.14)),
-            radius: prominentShadow ? 16 : 10,
+                                  : (prominentShadow ? 0.20 : 0.14)) : .clear,
+            radius: usesFloatingDecoration ? (prominentShadow ? 16 : 10) : 0,
             x: 0,
-            y: prominentShadow ? 6 : 4
+            y: usesFloatingDecoration ? (prominentShadow ? 6 : 4) : 0
         )
     }
 }

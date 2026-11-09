@@ -5,6 +5,7 @@ import DeepSeekFocusCore
 struct SpotlightRootView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ObservedObject var model: SpotlightViewModel
+    var onPromoteToWindow: () -> Void = {}
     @ObservedObject var settings: AppSettings
     @ObservedObject var modelCatalog: ModelCatalog
 
@@ -29,7 +30,8 @@ struct SpotlightRootView: View {
                 ConversationSurface(
                     model: model,
                     settings: settings,
-                    modelCatalog: modelCatalog
+                    modelCatalog: modelCatalog,
+                    onPromoteToWindow: onPromoteToWindow
                 )
                 .id(settings.resolvedLanguageCode)
                 .transition(
@@ -44,7 +46,7 @@ struct SpotlightRootView: View {
                     .transition(.opacity.combined(with: .scale(scale: 0.99)))
             }
         }
-        .padding(SpotlightMetrics.shadowInset)
+        .padding(model.isOrdinaryWindow ? 0 : SpotlightMetrics.shadowInset)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .environment(\.locale, settings.appLanguage.locale)
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.isConversation)
@@ -53,6 +55,20 @@ struct SpotlightRootView: View {
         .onExitCommand {
             model.requestHide()
         }
+    }
+}
+
+private struct WindowDragHandle: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        WindowDragHandleView()
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+}
+
+private final class WindowDragHandleView: NSView {
+    override func mouseDown(with event: NSEvent) {
+        window?.performDrag(with: event)
     }
 }
 
@@ -79,8 +95,8 @@ private struct SearchSurface: View {
             .foregroundStyle(.primary.opacity(0.92))
             .focused($fieldFocused)
             .onSubmit { model.submit() }
-            .help(L10n.format("按 %@ 展开对话", settings.expandShortcut.displayString))
-            .accessibilityHint(L10n.format("按 %@ 展开对话", settings.expandShortcut.displayString))
+            .help("按 ↓ 展开对话")
+            .accessibilityHint("输入为空时按向下键展开对话")
             .layoutPriority(1)
 
             QuickModelControls(
@@ -157,26 +173,36 @@ private struct ConversationSurface: View {
     @ObservedObject var model: SpotlightViewModel
     @ObservedObject var settings: AppSettings
     @ObservedObject var modelCatalog: ModelCatalog
+    var onPromoteToWindow: () -> Void = {}
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var composerHeight: CGFloat = 24
     @State private var isAtBottom = true
 
     var body: some View {
         HStack(spacing: 0) {
-            if model.isHistoryPresented {
+            HStack(spacing: 0) {
                 sidebarColumn
-                    .transition(.move(edge: .leading).combined(with: .opacity))
-
                 sidebarDivider
-                    .transition(.opacity)
             }
+            .frame(width: 255)
+            .offset(x: model.isHistoryPresented ? 0 : -32)
+            .opacity(model.isHistoryPresented ? 1 : 0)
+            .frame(width: model.isHistoryPresented ? 255 : 0, alignment: .leading)
+            .clipped()
+            .allowsHitTesting(model.isHistoryPresented)
+            .accessibilityHidden(!model.isHistoryPresented)
 
             conversationColumn
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipShape(RoundedRectangle(cornerRadius: FocusTheme.radiusLarge, style: .continuous))
-        .background(FocusPanelBackground(cornerRadius: FocusTheme.radiusLarge, prominentShadow: true))
-        .animation(.easeInOut(duration: 0.2), value: model.isHistoryPresented)
+        .background(FocusPanelBackground(
+            cornerRadius: FocusTheme.radiusLarge,
+            prominentShadow: true,
+            usesFloatingDecoration: !model.isOrdinaryWindow
+        ))
+        .animation(reduceMotion ? nil : .spring(response: 0.36, dampingFraction: 1), value: model.isHistoryPresented)
         .onChange(of: model.sessionConfiguration) { _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { model.requestFocus() }
         }
@@ -256,9 +282,15 @@ private struct ConversationSurface: View {
                 panelTitle
             }
 
-            Spacer(minLength: 12)
+            if model.isOrdinaryWindow {
+                WindowDragHandle()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                Spacer(minLength: 12)
+            }
             HStack(spacing: 4) {
                 newChatButton
+                promoteToWindowButton
                 settingsButton
             }
         }
@@ -304,6 +336,22 @@ private struct ConversationSurface: View {
         }
     }
 
+    private var promoteToWindowButton: some View {
+        Button {
+            onPromoteToWindow()
+        } label: {
+            Image(systemName: model.isOrdinaryWindow ? "pin.fill" : "pin")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(model.isOrdinaryWindow ? FocusTheme.accent : Color.primary.opacity(0.70))
+                .frame(width: 28, height: 28)
+                .background(model.isOrdinaryWindow ? FocusTheme.accent.opacity(0.12) : Color.clear, in: Circle())
+        }
+        .buttonStyle(.plain)
+        .help(model.isOrdinaryWindow ? "取消固定：失焦时隐藏" : "固定窗口：失焦后保留")
+        .accessibilityLabel(model.isOrdinaryWindow ? "取消固定窗口" : "固定窗口")
+        .accessibilityValue(model.isOrdinaryWindow ? "已固定" : "未固定")
+    }
+
     private var settingsButton: some View {
         FocusIconButton(systemName: "gearshape", help: "设置（⌘,）") {
             model.openSettingsPage()
@@ -337,14 +385,17 @@ private struct ConversationSurface: View {
             }
             .onChange(of: model.scrollTick) { _ in
                 guard isAtBottom else { return }
+                let sessionID = model.currentSessionID
                 DispatchQueue.main.async {
+                    guard model.currentSessionID == sessionID else { return }
                     // Frequent token updates should not queue overlapping animations.
                     proxy.scrollTo("conversation-bottom", anchor: .bottom)
                 }
             }
-            .onChange(of: model.currentSessionID) { _ in
+            .onChange(of: model.currentSessionID) { sessionID in
                 isAtBottom = true
                 DispatchQueue.main.async {
+                    guard model.currentSessionID == sessionID else { return }
                     proxy.scrollTo("conversation-bottom", anchor: .bottom)
                 }
             }

@@ -64,7 +64,6 @@ final class AppSettings: ObservableObject {
         static let reasoning = "deepseek.reasoningEffort"
         static let searchMode = "deepseek.webSearchMode"
         static let shortcut = "deepseek.shortcut"
-        static let expandShortcut = "deepseek.expandShortcut"
         static let sidebarShortcut = "deepseek.sidebarShortcut"
         static let selectionShortcut = "deepseek.selectionShortcut"
         static let translationTarget = "deepseek.translationTarget"
@@ -130,14 +129,6 @@ final class AppSettings: ObservableObject {
         }
     }
     @Published var shortcutError: String?
-    @Published private(set) var expandShortcut: AppShortcut {
-        didSet {
-            if let data = try? JSONEncoder().encode(expandShortcut) {
-                defaults.set(data, forKey: Key.expandShortcut)
-            }
-        }
-    }
-    @Published var expandShortcutError: String?
     @Published private(set) var sidebarShortcut: AppShortcut {
         didSet {
             if let data = try? JSONEncoder().encode(sidebarShortcut) {
@@ -247,12 +238,6 @@ final class AppSettings: ObservableObject {
             self.shortcut = decoded
         } else {
             self.shortcut = .default
-        }
-        if let data = defaults.data(forKey: Key.expandShortcut),
-           let decoded = try? JSONDecoder().decode(AppShortcut.self, from: data) {
-            self.expandShortcut = decoded
-        } else {
-            self.expandShortcut = .expandDefault
         }
         if let data = defaults.data(forKey: Key.sidebarShortcut),
            let decoded = try? JSONDecoder().decode(AppShortcut.self, from: data) {
@@ -374,10 +359,6 @@ final class AppSettings: ObservableObject {
 
     @discardableResult
     func applyShortcut(_ newShortcut: AppShortcut) -> Bool {
-        guard newShortcut != expandShortcut else {
-            shortcutError = L10n.string("这个快捷键已被展开快捷键占用，请换一个。")
-            return false
-        }
         guard newShortcut != sidebarShortcut else {
             shortcutError = L10n.string("这个快捷键已被侧边栏切换占用，请换一个。")
             return false
@@ -413,10 +394,6 @@ final class AppSettings: ObservableObject {
             sidebarShortcutError = L10n.string("这个快捷键已被全局唤起占用，请换一个。")
             return false
         }
-        guard newShortcut != expandShortcut else {
-            sidebarShortcutError = L10n.string("这个快捷键已被展开快捷键占用，请换一个。")
-            return false
-        }
         guard newShortcut != selectionShortcut else {
             sidebarShortcutError = L10n.string("这个快捷键已被选区快捷操作占用，请换一个。")
             return false
@@ -431,33 +408,6 @@ final class AppSettings: ObservableObject {
     }
 
     @discardableResult
-    func applyExpandShortcut(_ newShortcut: AppShortcut) -> Bool {
-        guard newShortcut.isValid else {
-            expandShortcutError = L10n.string("这个快捷键无效，请至少使用一个修饰键（⌘、⌥、⌃），或选择功能键。")
-            return false
-        }
-        guard newShortcut != shortcut else {
-            expandShortcutError = L10n.string("这个快捷键已被全局唤起占用，请换一个。")
-            return false
-        }
-        guard newShortcut != sidebarShortcut else {
-            expandShortcutError = L10n.string("这个快捷键已被侧边栏切换占用，请换一个。")
-            return false
-        }
-        guard newShortcut != selectionShortcut else {
-            expandShortcutError = L10n.string("这个快捷键已被选区快捷操作占用，请换一个。")
-            return false
-        }
-        expandShortcut = newShortcut
-        expandShortcutError = nil
-        return true
-    }
-
-    func resetExpandShortcut() {
-        _ = applyExpandShortcut(.expandDefault)
-    }
-
-    @discardableResult
     func applySelectionShortcut(_ newShortcut: AppShortcut) -> Bool {
         guard newShortcut.isValid else {
             selectionShortcutError = L10n.string("这个快捷键无效，请至少使用一个修饰键（⌘、⌥、⌃），或选择功能键。")
@@ -465,10 +415,6 @@ final class AppSettings: ObservableObject {
         }
         guard newShortcut != shortcut else {
             selectionShortcutError = L10n.string("这个快捷键已被全局唤起占用，请换一个。")
-            return false
-        }
-        guard newShortcut != expandShortcut else {
-            selectionShortcutError = L10n.string("这个快捷键已被展开快捷键占用，请换一个。")
             return false
         }
         guard newShortcut != sidebarShortcut else {

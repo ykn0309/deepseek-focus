@@ -516,18 +516,6 @@ struct SettingsView: View {
             Divider()
 
             ShortcutSettingRow(
-                icon: "rectangle.expand.vertical",
-                title: "展开快捷键",
-                subtitle: "从初始输入框进入展开后的对话页",
-                shortcut: settings.expandShortcut,
-                error: settings.expandShortcutError,
-                onApply: { settings.applyExpandShortcut($0) },
-                onReset: { settings.resetExpandShortcut() }
-            )
-
-            Divider()
-
-            ShortcutSettingRow(
                 icon: "sidebar.left",
                 title: "侧边栏快捷键",
                 subtitle: "在展开页中显示或隐藏历史侧边栏",

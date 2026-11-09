@@ -94,7 +94,6 @@
 "将永久删除「%@」及其所有消息。" = "“%@” and all its messages will be permanently deleted.";
 "尚未发布可用的 Release。" = "No published release is available yet.";
 "尚未配置 API Key。" = "No API key configured.";
-"展开快捷键" = "Expand shortcut";
 "已停止生成" = "Generation stopped";
 "已停止生成。" = "Generation stopped.";
 "已同步 %ld 个模型 · %@" = "Synced %ld models · %@";
@@ -277,7 +276,6 @@
 "还没有配置 DeepSeek API Key。请在设置中填写后再试。" = "No DeepSeek API key is configured. Add one in Settings and try again.";
 "这个快捷键已被侧边栏切换占用，请换一个。" = "This shortcut is already used for the sidebar. Choose another.";
 "这个快捷键已被全局唤起占用，请换一个。" = "This shortcut is already used by the global launcher. Choose another.";
-"这个快捷键已被展开快捷键占用，请换一个。" = "This shortcut is already used for expanding the panel. Choose another.";
 "这个快捷键已被选区快捷操作占用，请换一个。" = "This shortcut is already used for selection actions. Choose another.";
 "这个快捷键无效，请至少使用一个修饰键（⌘、⌥ 或 ⌃），或选择功能键。" = "Invalid shortcut. Use at least one modifier (⌘, ⌥, or ⌃), or choose a function key.";
 "这个快捷键无效，请至少使用一个修饰键（⌘、⌥、⌃），或选择功能键。" = "Invalid shortcut. Use at least one modifier (⌘, ⌥, or ⌃), or choose a function key.";

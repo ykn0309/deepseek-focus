@@ -20,7 +20,7 @@ struct SessionAIConfiguration: Equatable {
     var webSearchMode: WebSearchMode
 }
 
-struct ConversationTurn: Identifiable, Codable {
+struct ConversationTurn: Identifiable, Codable, Equatable {
     var id: UUID = UUID()
     let question: String
     var answer = ""
@@ -79,6 +79,7 @@ private final class GenerationJob {
 final class SpotlightViewModel: ObservableObject {
     @Published var input = ""
     @Published private(set) var isConversation = false
+    @Published private(set) var isOrdinaryWindow = false
     @Published private(set) var isStreaming = false
     @Published private(set) var turns: [ConversationTurn] = []
     @Published private(set) var generatingSessionIDs: Set<UUID> = []
@@ -95,6 +96,14 @@ final class SpotlightViewModel: ObservableObject {
     var onRequestExpand: (() -> Void)?
     var onRequestCollapse: (() -> Void)?
     var onHide: (() -> Void)?
+
+    func promoteToOrdinaryWindowLayout() {
+        isOrdinaryWindow = true
+    }
+
+    func restoreSpotlightLayout() {
+        isOrdinaryWindow = false
+    }
 
     private var engine = ConversationEngine()
     private var streamTask: Task<Void, Never>?
@@ -308,13 +317,30 @@ final class SpotlightViewModel: ObservableObject {
     }
 
     /// Expand the compact palette without sending a message.
+    func navigateHistory(by offset: Int) {
+        let sessions = historyStore.sessions
+        guard !sessions.isEmpty else { return }
+        let currentIndex = currentSessionID.flatMap { id in sessions.firstIndex(where: { $0.id == id }) }
+        let nextIndex: Int
+        if let currentIndex {
+            nextIndex = min(max(currentIndex + offset, 0), sessions.count - 1)
+        } else {
+            nextIndex = offset < 0 ? 0 : sessions.count - 1
+        }
+        loadHistorySession(sessions[nextIndex])
+    }
+
     func expandToConversation() {
         guard !isConversation, !isShowingSettings else { return }
-        isConversation = true
         isHistoryPresented = true
-        onRequestExpand?()
-        focusToken &+= 1
-        requestScroll(force: true)
+        if let latestSession = historyStore.sessions.first {
+            loadHistorySession(latestSession)
+        } else {
+            isConversation = true
+            onRequestExpand?()
+            focusToken &+= 1
+            requestScroll(force: true)
+        }
     }
 
     func openHistory() {
@@ -339,6 +365,7 @@ final class SpotlightViewModel: ObservableObject {
 
     func loadHistorySession(_ session: ConversationSession) {
         guard currentSessionID != session.id else { requestFocus(); return }
+        let needsExpansion = !isConversation
         rememberDraft()
         cancelPendingUIPublish()
         if currentSessionID != session.id {
@@ -362,7 +389,7 @@ final class SpotlightViewModel: ObservableObject {
             currentSessionLanguageCode = job.languageCode
             sessionConfiguration = job.configuration
             focusToken &+= 1
-            onRequestExpand?()
+            if needsExpansion { onRequestExpand?() }
             requestScroll(force: true)
             return
         }
@@ -384,7 +411,7 @@ final class SpotlightViewModel: ObservableObject {
         currentSessionLanguageCode = session.languageCode ?? settings.resolvedLanguageCode
         applyConfiguration(from: session)
         focusToken &+= 1
-        onRequestExpand?()
+        if needsExpansion { onRequestExpand?() }
         requestScroll(force: true)
     }
 

@@ -1,4 +1,5 @@
 import AppKit
+import Carbon.HIToolbox
 import SwiftUI
 import DeepSeekFocusCore
 
@@ -15,6 +16,7 @@ final class SpotlightPanelController {
     private let modelCatalog: ModelCatalog
     private var keyMonitor: Any?
     private var contentLoaded = false
+    private var isOrdinaryWindow = false
 
     init(settings: AppSettings, modelCatalog: ModelCatalog, historyStore: ConversationHistoryStore) {
         self.settings = settings
@@ -67,6 +69,11 @@ final class SpotlightPanelController {
         panel.isVisible
     }
 
+    func bringToFront() {
+        NSApp.activate(ignoringOtherApps: true)
+        panel.makeKeyAndOrderFront(nil)
+    }
+
     var viewModel: SpotlightViewModel {
         model
     }
@@ -90,6 +97,7 @@ final class SpotlightPanelController {
             showSettings()
             return
         }
+        restoreSpotlightMode()
         model.beginFreshInvocation()
         model.input = SelectionPrompt.make(
             text: text,
@@ -114,6 +122,7 @@ final class SpotlightPanelController {
             showSettings()
             return
         }
+        restoreSpotlightMode()
         model.beginFreshInvocation()
         show()
     }
@@ -130,6 +139,9 @@ final class SpotlightPanelController {
     }
 
     func show() {
+        if isOrdinaryWindow, !panel.isVisible {
+            restoreSpotlightMode()
+        }
         loadContentIfNeeded()
         let screen = screenForPresentation()
         let frame = targetFrame(conversation: model.isConversation, screen: screen)
@@ -165,11 +177,60 @@ final class SpotlightPanelController {
         }
     }
 
+    func promoteToOrdinaryWindow() {
+        if isOrdinaryWindow {
+            let contentFrame = panel.frame
+            restoreSpotlightMode()
+            panel.setFrame(contentFrame.insetBy(dx: -SpotlightMetrics.shadowInset, dy: -SpotlightMetrics.shadowInset), display: true)
+            installKeyboardMonitor()
+            return
+        }
+        let contentFrame = panel.frame.insetBy(dx: SpotlightMetrics.shadowInset, dy: SpotlightMetrics.shadowInset)
+        isOrdinaryWindow = true
+        model.promoteToOrdinaryWindowLayout()
+        installKeyboardMonitor()
+        // Keep the conversation as a regular-level window without adding
+        // system chrome. The expanded panel already has its own visual frame;
+        // a title bar would make the window chrome wider than that surface.
+        panel.styleMask = [.borderless, .resizable]
+        panel.title = ""
+        panel.titleVisibility = .hidden
+        panel.level = .normal
+        panel.collectionBehavior = [.managed, .fullScreenAuxiliary]
+        panel.isMovable = true
+        panel.isMovableByWindowBackground = true
+        panel.hasShadow = true
+        panel.setFrame(contentFrame, display: true)
+        panel.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private func restoreSpotlightMode() {
+        guard isOrdinaryWindow else { return }
+        isOrdinaryWindow = false
+        model.restoreSpotlightLayout()
+        panel.styleMask = [.borderless, .fullSizeContentView]
+        panel.level = NSWindow.Level(rawValue: NSWindow.Level.statusBar.rawValue + 1)
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
+        panel.isMovable = false
+        panel.isMovableByWindowBackground = false
+        panel.hasShadow = false
+    }
+
     func hide() {
         guard panel.isVisible else { return }
+        if isOrdinaryWindow {
+            panel.orderOut(nil)
+            return
+        }
         removeKeyboardMonitor()
         panel.orderOut(nil)
         panel.alphaValue = 1
+    }
+
+    func hideOnDeactivate() {
+        guard !isOrdinaryWindow else { return }
+        hide()
     }
 
     private func loadContentIfNeeded() {
@@ -178,6 +239,7 @@ final class SpotlightPanelController {
 
         let rootView = SpotlightRootView(
             model: model,
+            onPromoteToWindow: { [weak self] in self?.promoteToOrdinaryWindow() },
             settings: settings,
             modelCatalog: modelCatalog
         )
@@ -208,8 +270,6 @@ final class SpotlightPanelController {
 
     private func targetFrame(conversation: Bool, screen: NSScreen) -> NSRect {
         let visible = screen.visibleFrame
-        let margin = SpotlightMetrics.shadowInset
-
         let preferredWidth = conversation
             ? SpotlightMetrics.expandedVisualWidth
             : SpotlightMetrics.initialVisualWidth
@@ -241,7 +301,11 @@ final class SpotlightPanelController {
             visual.origin.y = visible.maxY - 18 - visual.height
         }
 
-        return visual.insetBy(dx: -margin, dy: -margin)
+        guard !isOrdinaryWindow else { return visual }
+        return visual.insetBy(
+            dx: -SpotlightMetrics.shadowInset,
+            dy: -SpotlightMetrics.shadowInset
+        )
     }
 
     private func screenForPresentation() -> NSScreen {
@@ -288,11 +352,26 @@ final class SpotlightPanelController {
             return nil
         }
 
-        if flags.contains(.command), !flags.contains(.option), !flags.contains(.control) {
-            if !composing, !model.isConversation, settings.expandShortcut.matches(event: event) {
-                model.expandToConversation()
+        if !composing, !flags.contains(.command), !flags.contains(.option), !flags.contains(.control), !flags.contains(.shift) {
+            if event.keyCode == UInt16(kVK_DownArrow) {
+                if !model.isConversation {
+                    guard model.input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return event }
+                    model.expandToConversation()
+                    return nil
+                }
+                guard !model.isShowingSettings,
+                      model.input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return event }
+                model.navigateHistory(by: 1)
                 return nil
             }
+            if event.keyCode == UInt16(kVK_UpArrow), model.isConversation, !model.isShowingSettings,
+               model.input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                model.navigateHistory(by: -1)
+                return nil
+            }
+        }
+
+        if flags.contains(.command), !flags.contains(.option), !flags.contains(.control) {
             if !composing,
                model.isConversation,
                !model.isShowingSettings,

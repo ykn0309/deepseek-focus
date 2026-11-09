@@ -2,7 +2,7 @@ import Foundation
 import Combine
 import DeepSeekFocusCore
 
-struct ConversationSession: Codable, Identifiable {
+struct ConversationSession: Codable, Identifiable, Equatable {
     var id: UUID
     var createdAt: Date
     var updatedAt: Date
@@ -46,6 +46,9 @@ final class ConversationHistoryStore: ObservableObject {
 
     func upsert(_ session: ConversationSession) {
         if let index = sessions.firstIndex(where: { $0.id == session.id }) {
+            // Browsing an unchanged session must not republish the sidebar or
+            // encode, validate and rewrite the complete history on the UI thread.
+            guard sessions[index] != session else { return }
             // Saving the same session should not move it in the sidebar. Only
             // re-sort when its last-activity date actually changed.
             let needsResort = sessions[index].updatedAt != session.updatedAt
