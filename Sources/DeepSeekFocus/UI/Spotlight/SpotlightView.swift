@@ -279,8 +279,15 @@ private struct ConversationSurface: View {
         HStack(spacing: 10) {
             if !model.isHistoryPresented {
                 sidebarToggle
-                panelTitle
             }
+
+            Text(model.displaySessionTitle)
+                .font(.system(size: 12.5, weight: .semibold))
+                .foregroundStyle(.primary.opacity(0.82))
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .help(model.displaySessionTitle)
+                .frame(maxWidth: 360, alignment: .leading)
 
             if model.isOrdinaryWindow {
                 WindowDragHandle()

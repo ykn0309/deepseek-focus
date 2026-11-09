@@ -114,7 +114,17 @@ final class SpotlightViewModel: ObservableObject {
     private var pendingUIPublish: DispatchWorkItem?
     @Published private(set) var currentSessionID: UUID?
     private var currentSessionCreatedAt: Date?
-    private var currentSessionTitle: String?
+    @Published private var currentSessionTitle: String?
+
+    var displaySessionTitle: String {
+        if let title = currentSessionTitle?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty {
+            return title
+        }
+        if let question = turns.first?.question, !question.isEmpty {
+            return String(question.replacingOccurrences(of: "\n", with: " ").prefix(48))
+        }
+        return L10n.string("新对话")
+    }
     private var currentSessionTitleGenerated = false
     private var currentSessionLanguageCode: String
     private var settingsReturnToHistory = false

@@ -359,12 +359,12 @@ final class SpotlightPanelController {
                     model.expandToConversation()
                     return nil
                 }
-                guard !model.isShowingSettings,
+                guard model.isHistoryPresented, !model.isShowingSettings,
                       model.input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return event }
                 model.navigateHistory(by: 1)
                 return nil
             }
-            if event.keyCode == UInt16(kVK_UpArrow), model.isConversation, !model.isShowingSettings,
+            if event.keyCode == UInt16(kVK_UpArrow), model.isConversation, model.isHistoryPresented, !model.isShowingSettings,
                model.input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 model.navigateHistory(by: -1)
                 return nil
